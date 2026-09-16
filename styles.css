@@ -220,3 +220,19 @@ html[data-theme="dark"] .tab.active .tab-icon{color:var(--accent-2)}
 .payment-value .delete-payment{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
 
 @media(max-width:520px){.date{font-size:22px}}
+
+/* V38 — keep long names and payment actions readable on narrow screens. */
+.person input{flex-shrink:0}
+.person span,.summaryPerson>span,.payment-item>span{min-width:0;overflow-wrap:anywhere}
+.summaryPerson>span:first-child{flex:1}
+.summaryPerson>span:last-child{flex:0 0 auto;max-width:48%;text-align:right}
+.pill{max-width:100%;overflow-wrap:anywhere}
+.metric b,.payment-value b{overflow-wrap:anywhere}
+.payment-value{min-width:0;flex-wrap:wrap;justify-content:flex-end}
+.payment-item>span:first-child{flex:1}
+.payment-value{flex:0 1 55%}
+#morePayments{margin-top:12px}
+@media(max-width:520px){
+  .payment-item{align-items:flex-start;flex-direction:column}
+  .payment-value{width:100%;justify-content:space-between}
+}

@@ -1,8 +1,8 @@
 'use strict';
 
-const APP_VERSION = 37;
+const APP_VERSION = 38;
 const STORAGE_KEY = 'covoiturageData';
-const MAX_BACKUP_SIZE = 2_000_000;
+const MAX_BACKUP_SIZE = 20_000_000;
 const MAX_PEOPLE = 30;
 const BACKUP_REMINDER_DAYS = 30;
 const DEFAULT_DATA = Object.freeze({
@@ -17,12 +17,22 @@ const DEFAULT_DATA = Object.freeze({
 const cloneDefaults = () => JSON.parse(JSON.stringify(DEFAULT_DATA));
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
-const finite = (value, fallback=0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
+const isNumeric = value => (typeof value==='number' || (typeof value==='string' && value.trim()!=='')) && Number.isFinite(Number(value));
+const finite = (value, fallback=0) => isNumeric(value) ? Number(value) : fallback;
 const clamp = (value, min, max, fallback=min) => Math.min(max, Math.max(min, finite(value, fallback)));
 const localISO = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const getToday = () => localISO(new Date());
 const makeId = () => `${Date.now().toString(36)}${crypto.getRandomValues(new Uint32Array(1))[0].toString(36)}`;
 const safeId = value => /^[A-Za-z0-9_-]{1,80}$/.test(String(value||'')) ? String(value) : makeId();
+const isRecord = value => value!==null && typeof value==='object' && !Array.isArray(value);
+const optionalNumber = (value,max) => isNumeric(value) ? clamp(value,0,max,0) : null;
+const personIndex = value => isNumeric(value) && Number.isInteger(Number(value)) ? Number(value) : -1;
+function uniqueId(value,seen){
+  let id=safeId(value);
+  while(seen.has(id)) id=makeId();
+  seen.add(id);
+  return id;
+}
 const safeDate = (value, fallback=getToday()) => {
   const s=String(value||'');
   if(!/^\d{4}-\d{2}-\d{2}$/.test(s)) return fallback;
@@ -51,12 +61,12 @@ const UI_ICONS = Object.freeze({
 function normalizeData(raw){
   const base=cloneDefaults();
   if(!raw || typeof raw!=='object' || Array.isArray(raw)) return base;
-  const s=raw.settings && typeof raw.settings==='object' ? raw.settings : {};
+  const s=isRecord(raw.settings) ? raw.settings : {};
   const legacyEnergyPrice=s.energyPrice ?? s.diesel;
   const distance=clamp(s.distance,0,2000,85);
-  const legacyVehicleCostPerKm = Number.isFinite(Number(s.vehicleCostPerKm))
+  const legacyVehicleCostPerKm = isNumeric(s.vehicleCostPerKm)
     ? Number(s.vehicleCostPerKm)
-    : (distance>0 && Number.isFinite(Number(s.carFee)) ? Number(s.carFee)/distance : 0.10);
+    : (distance>0 && isNumeric(s.carFee) ? Number(s.carFee)/distance : 0.10);
   base.settings={
     distance,
     consumption:clamp(s.consumption,0,100,6),
@@ -69,48 +79,110 @@ function normalizeData(raw){
 
   const incomingPeople=Array.isArray(raw.people)?raw.people:[];
   if(incomingPeople.length){
-    base.people=incomingPeople.slice(0,MAX_PEOPLE).map((name,i)=>cleanName(name,`Passager ${i+1}`));
+    base.people=incomingPeople.map((name,i)=>cleanName(name,`Passager ${i+1}`));
   }
   if(!base.people.length) base.people=['Passager 1'];
   const maxIndex=base.people.length-1;
-  base.archivedPeople=[...new Set((Array.isArray(raw.archivedPeople)?raw.archivedPeople:[]).map(Number).filter(i=>Number.isInteger(i)&&i>=0&&i<=maxIndex))];
+  base.archivedPeople=[...new Set((Array.isArray(raw.archivedPeople)?raw.archivedPeople:[]).map(personIndex).filter(i=>i>=0&&i<=maxIndex))];
   base.lastBackupAt=safeIsoDateTime(raw.lastBackupAt);
 
-  const trips=Array.isArray(raw.trips)?raw.trips.slice(-10000):[];
-  base.trips=trips.filter(t=>t&&typeof t==='object').map(t=>({
-    id:safeId(t.id),
+  const tripIds=new Set(), paymentIds=new Set();
+  const trips=Array.isArray(raw.trips)?raw.trips:[];
+  base.trips=trips.filter(isRecord).map(t=>({
+    id:uniqueId(t.id,tripIds),
     date:safeDate(t.date),
-    people:[...new Set(Array.isArray(t.people)?t.people.map(Number).filter(i=>Number.isInteger(i)&&i>=0&&i<=maxIndex):[])],
-    noTrip:Boolean(t.noTrip),
-    rate:clamp(t.rate,0,10000,0),
-    cost:clamp(t.cost,0,10000,0),
+    people:[...new Set(Array.isArray(t.people)?t.people.map(personIndex).filter(i=>i>=0&&i<=maxIndex):[])],
+    noTrip:t.noTrip===true,
+    rate:clamp(t.rate,0,61000,0),
+    cost:clamp(t.cost,0,61000,0),
     createdAt:safeIsoDateTime(t.createdAt)||new Date().toISOString(),
-    distance:Number.isFinite(Number(t.distance))?clamp(t.distance,0,2000,0):null,
-    consumption:Number.isFinite(Number(t.consumption))?clamp(t.consumption,0,100,0):null,
+    distance:optionalNumber(t.distance,2000),
+    consumption:optionalNumber(t.consumption,100),
     energyType:['fuel','electric'].includes(t.energyType)?t.energyType:null,
-    energyPrice:Number.isFinite(Number(t.energyPrice))?clamp(t.energyPrice,0,20,0):null,
-    energyUsed:Number.isFinite(Number(t.energyUsed))?clamp(t.energyUsed,0,10000,0):null,
-    vehicleCostPerKm:Number.isFinite(Number(t.vehicleCostPerKm))?clamp(t.vehicleCostPerKm,0,10,0):null,
-    toll:Number.isFinite(Number(t.toll))?clamp(t.toll,0,1000,0):null
+    energyPrice:optionalNumber(t.energyPrice,20),
+    energyUsed:optionalNumber(t.energyUsed,10000),
+    vehicleCostPerKm:optionalNumber(t.vehicleCostPerKm,10),
+    toll:optionalNumber(t.toll,1000)
   }));
 
-  const payments=Array.isArray(raw.payments)?raw.payments.slice(-10000):[];
-  base.payments=payments.filter(p=>p&&typeof p==='object').map(p=>({
-    id:safeId(p.id),
-    person:Number(p.person),
+  const payments=Array.isArray(raw.payments)?raw.payments:[];
+  base.payments=payments.filter(isRecord).map(p=>({
+    id:uniqueId(p.id,paymentIds),
+    person:personIndex(p.person),
     amount:clamp(p.amount,0,1_000_000,0),
     date:safeDate(p.date)
   })).filter(p=>Number.isInteger(p.person)&&p.person>=0&&p.person<=maxIndex&&p.amount>0);
   return base;
 }
 
-let data;
-try{ data=normalizeData(JSON.parse(localStorage.getItem(STORAGE_KEY)||'null')); }
-catch{ data=cloneDefaults(); }
+// Missing historical fields are migrated; changed or discarded values are reported.
+function normalizationWarnings(raw,next){
+  const warnings=[];
+  const changed=(source,target,keys) => keys.some(key=>Object.prototype.hasOwnProperty.call(source,key) && (
+    typeof target[key]==='number' ? !['number','string'].includes(typeof source[key]) || String(source[key]).trim()==='' || Number(source[key])!==target[key]
+      : JSON.stringify(source[key])!==JSON.stringify(target[key])
+  ));
+  const numericSettings=['distance','consumption','energyPrice','toll','vehicleCostPerKm'];
+  const settings={...raw.settings};
+  if(settings.energyPrice==null && settings.diesel!=null) settings.energyPrice=settings.diesel;
+  if(settings.vehicleCostPerKm==null && settings.carFee!=null && next.settings.distance>0) settings.vehicleCostPerKm=Number(settings.carFee)/next.settings.distance;
+  if(changed(settings,next.settings,[...numericSettings,'energyType','theme'])) warnings.push('Certains réglages invalides seront corrigés.');
+  if(JSON.stringify(raw.people)!==JSON.stringify(next.people)) warnings.push('Certains noms de passagers seront nettoyés ou complétés.');
+  if(raw.archivedPeople!==undefined && JSON.stringify(raw.archivedPeople)!==JSON.stringify(next.archivedPeople)) warnings.push('La liste des passagers archivés sera corrigée.');
+  const sourceTrips=raw.trips.filter(isRecord);
+  if(sourceTrips.length!==raw.trips.length) warnings.push(`${raw.trips.length-sourceTrips.length} trajet(s) invalide(s) seront écartés.`);
+  const tripKeys=['id','date','people','noTrip','rate','cost','createdAt','distance','consumption','energyType','energyPrice','energyUsed','vehicleCostPerKm','toll'];
+  const corrected=sourceTrips.filter((t,i)=>changed(t,next.trips[i],tripKeys) || !t.date || !Array.isArray(t.people) || (!t.noTrip && (t.rate==null || t.cost==null))).length;
+  if(corrected) warnings.push(`${corrected} trajet(s) contiennent des valeurs qui seront corrigées.`);
+  const sourcePayments=Array.isArray(raw.payments)?raw.payments:[];
+  if(raw.payments!==undefined && !Array.isArray(raw.payments)) warnings.push('La liste des versements est invalide et sera écartée.');
+  const validPayments=sourcePayments.filter(p=>isRecord(p) && personIndex(p.person)>=0 && personIndex(p.person)<next.people.length && clamp(p.amount,0,1_000_000,0)>0);
+  if(validPayments.length!==sourcePayments.length) warnings.push(`${sourcePayments.length-validPayments.length} versement(s) invalide(s) seront écartés.`);
+  const correctedPayments=validPayments.filter((p,i)=>changed(p,next.payments[i],['id','person','amount','date']) || !p.date).length;
+  if(correctedPayments) warnings.push(`${correctedPayments} versement(s) contiennent des valeurs qui seront corrigées.`);
+  if(raw.lastBackupAt!=null && !safeIsoDateTime(raw.lastBackupAt)) warnings.push('La date de sauvegarde invalide sera effacée.');
+  return warnings;
+}
 
-function saveData(){
-  try{ localStorage.setItem(STORAGE_KEY,JSON.stringify(data)); return true; }
-  catch{ alert("Impossible d’enregistrer les données localement sur cet appareil."); return false; }
+function validDataShape(value){
+  return isRecord(value) && isRecord(value.settings) && Array.isArray(value.people) && Array.isArray(value.trips);
+}
+
+let data=cloneDefaults(), storedRaw=null, storageProblem='';
+try{
+  storedRaw=localStorage.getItem(STORAGE_KEY);
+  if(storedRaw!==null){
+    const raw=JSON.parse(storedRaw);
+    if(!validDataShape(raw)) throw new Error('format');
+    data=normalizeData(raw);
+    const warnings=normalizationWarnings(raw,data);
+    if(warnings.length) storageProblem='Des données locales nécessitent une vérification. '+warnings.join(' ');
+  }
+}catch{ storageProblem='Les données locales ne peuvent pas être lues correctement.'; }
+let savedData=JSON.stringify(data);
+
+function saveData({allowRecovery=false}={}){
+  try{
+    if(storageProblem && !allowRecovery) throw new Error('protected');
+    if(localStorage.getItem(STORAGE_KEY)!==storedRaw) throw new Error('conflict');
+    const serialized=JSON.stringify(data);
+    localStorage.setItem(STORAGE_KEY,serialized);
+    savedData=serialized;
+    storedRaw=serialized;
+    storageProblem='';
+    return true;
+  }catch(error){
+    data=JSON.parse(savedData);
+    applyTheme();
+    renderAll();
+    const message=error.message==='protected'
+      ? 'Les données originales sont protégées. Dans Réglages, sauvegardez leur copie puis restaurez une sauvegarde pour les vérifier.'
+      : error.message==='conflict'
+        ? 'Les données locales ont changé dans une autre fenêtre. Fermez puis rouvrez cette fenêtre avant de réessayer.'
+        : 'Impossible d’enregistrer sur cet appareil (stockage plein ou indisponible). La modification a été annulée ; les données précédentes sont conservées.';
+    alert(message);
+    return false;
+  }
 }
 
 function flash(message){
@@ -196,14 +268,18 @@ function filteredPayments(){
   });
 }
 
+let paymentDisplayLimit=8;
 function renderPayments(){
   $('#payPerson').innerHTML=data.people.map((name,i)=>`<option value="${i}">${escapeHTML(name)}${isArchived(i)?' (archivé)':''}</option>`).join('');
   if(!$('#payDate').value) $('#payDate').value=getToday();
   const payments=[...data.payments].sort((a,b)=>b.date.localeCompare(a.date));
-  $('#paymentHistory').innerHTML=payments.length?`<div class="small payment-caption">Derniers versements</div>${payments.slice(0,8).map(p=>`<div class="payment-item"><span>${escapeHTML(personName(p.person))}${isArchived(p.person)?'<span class="archive-tag">archivé</span>':''}<br><span class="small">${escapeHTML(new Date(`${p.date}T12:00:00`).toLocaleDateString('fr-FR'))}</span></span><span class="payment-value"><b>${euro(p.amount)}</b><button class="btn danger compact has-icon delete-payment" type="button" aria-label="Supprimer ce versement" data-id="${p.id}">${UI_ICONS.trash}<span class="btn-label">Supprimer</span></button></span></div>`).join('')}`:'<p class="small">Aucun versement enregistré.</p>';
+  $('#paymentHistory').innerHTML=payments.length?`<div class="small payment-caption">Versements · ${Math.min(paymentDisplayLimit,payments.length)} sur ${payments.length} (toutes périodes)</div>${payments.slice(0,paymentDisplayLimit).map(p=>`<div class="payment-item"><span>${escapeHTML(personName(p.person))}${isArchived(p.person)?'<span class="archive-tag">archivé</span>':''}<br><span class="small">${escapeHTML(new Date(`${p.date}T12:00:00`).toLocaleDateString('fr-FR'))}</span></span><span class="payment-value"><b>${euro(p.amount)}</b><button class="btn danger compact has-icon delete-payment" type="button" aria-label="Supprimer ce versement" data-id="${p.id}">${UI_ICONS.trash}<span class="btn-label">Supprimer</span></button></span></div>`).join('')}${payments.length>paymentDisplayLimit?'<button type="button" class="btn secondary" id="morePayments">Afficher les versements suivants</button>':''}`:'<p class="small">Aucun versement enregistré.</p>';
 }
 
 function renderSummary(){
+  $('#summaryScope').textContent=$('#period').value==='all'
+    ? 'Solde calculé sur tous les trajets et versements enregistrés.'
+    : 'Solde de la période uniquement, sans report antérieur. Choisissez « Tout » pour connaître le solde global.';
   const trips=filteredTrips().filter(t=>!t.noTrip);
   const payments=filteredPayments();
   const paidTotal=payments.reduce((sum,p)=>sum+p.amount,0);
@@ -220,7 +296,7 @@ function renderSummary(){
     const balance=due-paid;
     const state=balance>0?`${euro(balance)} à payer`:balance<0?`Crédit ${euro(Math.abs(balance))}`:'Soldé ✓';
     const cls=balance>0?'balance-positive':balance<0?'balance-credit':'balance-zero';
-    return `<div class="summaryPerson"><span>${escapeHTML(personName(i))}${isArchived(i)?'<span class="archive-tag">archivé</span>':''}<br><span class="small">${personTrips.length} jour(s) · dû ${euro(due)} · versé ${euro(paid)}</span></span><span class="${cls}">${state}</span></div>`;
+    return `<div class="summaryPerson"><span>${escapeHTML(personName(i))}${isArchived(i)?'<span class="archive-tag">archivé</span>':''}<br><span class="small">${personTrips.length} trajet(s) · dû ${euro(due)} · versé ${euro(paid)}</span></span><span class="${cls}">${state}</span></div>`;
   }).join('');
 }
 
@@ -257,6 +333,11 @@ function renderPeopleSettings(){
 function renderBackupStatus(){
   const el=$('#backupStatus');
   el.classList.remove('warning');
+  if(storageProblem){
+    el.textContent=storageProblem+' Les originaux restent protégés. Le bouton de sauvegarde exporte leur copie originale ; restaurez ensuite une sauvegarde vérifiée pour reprendre les modifications.';
+    el.classList.add('warning');
+    return;
+  }
   if(!data.lastBackupAt){
     el.textContent='Aucune sauvegarde enregistrée. Une sauvegarde régulière est recommandée.';
     el.classList.add('warning');
@@ -301,7 +382,7 @@ function saveSettings(){
   const next={...data.settings};
   for(const [key,[min,max]] of Object.entries(limits)){
     const el=$(`#${key}`), value=Number(el.value);
-    if(!Number.isFinite(value)||value<min||value>max){ alert(`Merci de saisir une valeur valide pour ${key}.`); el.focus(); return; }
+    if(el.value.trim()===''||!Number.isFinite(value)||value<min||value>max){ alert(`Merci de saisir une valeur valide pour ${key}.`); el.focus(); return; }
     next[key]=value;
   }
   next.energyType=['fuel','electric'].includes($('#energyType').value)?$('#energyType').value:'fuel';
@@ -344,16 +425,17 @@ function deleteArchivedPerson(index){
   const name=personName(index);
   const usedInTrips=data.trips.some(t=>Array.isArray(t.people)&&t.people.includes(index));
   const usedInPayments=data.payments.some(p=>p.person===index);
-  const warning=usedInTrips||usedInPayments ? ' Son historique et ses versements associés seront définitivement supprimés.' : '';
+  const warning=usedInTrips||usedInPayments ? ' Ses versements et sa participation aux trajets seront supprimés. Les trajets où cette personne était le seul passager seront supprimés ; les autres trajets et leurs coûts seront conservés.' : '';
   if(!confirm(`Supprimer définitivement ${name} ? Cette action est irréversible.${warning}`)) return;
   data.people.splice(index,1);
   data.archivedPeople=data.archivedPeople
     .filter(i=>i!==index)
     .map(i=>i>index?i-1:i);
-  data.trips=data.trips.map(t=>({
+  // Only remove trips whose sole passenger was the deleted person.
+  data.trips=data.trips.filter(t=>!(t.people.length===1 && t.people[0]===index)).map(t=>({
     ...t,
     people:(Array.isArray(t.people)?t.people:[]).filter(i=>i!==index).map(i=>i>index?i-1:i)
-  })).filter(t=>Array.isArray(t.people)?t.people.length>0:!t.noTrip);
+  }));
   data.payments=data.payments.filter(p=>p.person!==index).map(p=>({
     ...p,
     person:p.person>index?p.person-1:p.person
@@ -378,16 +460,23 @@ function downloadBlob(blob,filename){
 
 function markBackup(iso){
   data.lastBackupAt=iso;
-  saveData();
-  renderBackupStatus();
+  if(saveData()) renderBackupStatus();
 }
 
 async function backupData(){
+  if(storageProblem){
+    if(storedRaw===null){ alert('Le stockage est inaccessible. Rouvrez l’application ou restaurez une sauvegarde disponible.'); return; }
+    downloadBlob(new Blob([storedRaw],{type:'application/json'}),`covoiturage-recuperation-${getToday()}.json`);
+    flash('Copie originale proposée au téléchargement');
+    return;
+  }
   const backupAt=new Date().toISOString();
   const payloadData={...data,lastBackupAt:backupAt};
   const payload={app:'Covoiturage',version:APP_VERSION,exportedAt:backupAt,data:payloadData};
   const filename=`covoiturage-sauvegarde-${getToday()}.json`;
-  const content=JSON.stringify(payload,null,2);
+  const content=JSON.stringify(payload);
+  const blob=new Blob([content],{type:'application/json'});
+  if(blob.size>MAX_BACKUP_SIZE){ alert('La sauvegarde dépasse la limite de 20 Mo. Aucun fichier incompatible n’a été créé.'); return; }
   try{
     const file=new File([content],filename,{type:'application/json'});
     if(navigator.share&&navigator.canShare?.({files:[file]})){
@@ -395,31 +484,35 @@ async function backupData(){
       markBackup(backupAt); flash('Sauvegarde prête ✓'); return;
     }
   }catch(error){ if(error&&error.name==='AbortError') return; }
-  downloadBlob(new Blob([content],{type:'application/json'}),filename);
+  downloadBlob(blob,filename);
   markBackup(backupAt);
-  flash('Sauvegarde créée ✓');
+  flash('Sauvegarde proposée : vérifiez son enregistrement');
 }
 
 async function restoreData(file){
   if(!file) return;
   if(file.size>MAX_BACKUP_SIZE) throw new Error('too-large');
   const parsed=JSON.parse(await file.text());
-  const restored=parsed&&parsed.data?parsed.data:parsed;
-  if(!restored||typeof restored!=='object'||!Array.isArray(restored.trips)||!Array.isArray(restored.people)||!restored.settings) throw new Error('format');
-  if(!confirm('Restaurer cette sauvegarde ? Les données actuelles de l’application seront remplacées.')) return;
-  data=normalizeData(restored);
-  if(parsed&&parsed.exportedAt){ const exported=safeIsoDateTime(parsed.exportedAt); if(exported) data.lastBackupAt=exported; }
-  if(saveData()){applyTheme();renderAll();flash('Sauvegarde restaurée ✓');}
+  const wrapped=isRecord(parsed) && Object.prototype.hasOwnProperty.call(parsed,'data');
+  const restored=wrapped?parsed.data:parsed;
+  if(!validDataShape(restored) || (wrapped && parsed.app!==undefined && parsed.app!=='Covoiturage')) throw new Error('format');
+  if(wrapped && Number(parsed.version)>APP_VERSION) throw new Error('future-version');
+  const next=normalizeData(restored), warnings=normalizationWarnings(restored,next);
+  const report=warnings.length?'\n\nCorrections prévues :\n'+warnings.join('\n'):'';
+  if(!confirm(`Restaurer cette sauvegarde (${next.trips.length} trajets, ${next.payments.length} versements) ? Les données actuelles seront remplacées.${report}`)) return;
+  if(wrapped && parsed.exportedAt){ const exported=safeIsoDateTime(parsed.exportedAt); if(exported) next.lastBackupAt=exported; }
+  data=next;
+  if(saveData({allowRecovery:true})){paymentDisplayLimit=8;applyTheme();renderAll();flash('Sauvegarde restaurée ✓');}
 }
 
 function safeCsvValue(value){
   let s=String(value??'');
-  if(/^[=+\-@]/.test(s)) s=`'${s}`;
+  if(/^[\s\u0000-\u001F]*[=+\-@]/.test(s)) s=`'${s}`;
   return `"${s.replaceAll('"','""')}"`;
 }
 
 function exportCsv(){
-  const rows=[['Date','Passagers','Nombre','Tarif/passager','Total reçu','Coût trajet'],...data.trips.map(t=>[t.date,t.people.map(personName).join(' / '),t.people.length,t.rate,t.rate*t.people.length,t.cost.toFixed(2)])];
+  const rows=[['Date','Passagers','Nombre','Tarif/passager','Participation prévue','Coût trajet'],...data.trips.map(t=>[t.date,t.people.map(personName).join(' / '),t.people.length,t.rate,t.rate*t.people.length,t.cost.toFixed(2)])];
   const csv='\ufeff'+rows.map(row=>row.map(safeCsvValue).join(';')).join('\n');
   downloadBlob(new Blob([csv],{type:'text/csv;charset=utf-8'}),'covoiturage.csv');
 }
@@ -444,33 +537,50 @@ $('#archivedPeopleSettings').addEventListener('click',event=>{
   if(remove){ deleteArchivedPerson(Number(remove.dataset.personIndex)); }
 });
 $('#addPayment').addEventListener('click',addPayment);
-$('#themeMode').addEventListener('change',event=>{data.settings.theme=event.target.value;saveData();applyTheme();flash('Apparence mise à jour ✓');});
+$('#themeMode').addEventListener('change',event=>{data.settings.theme=event.target.value;if(saveData()){applyTheme();flash('Apparence mise à jour ✓');}});
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if((data.settings.theme||'system')==='system')applyTheme();});
 $('#period').addEventListener('change',renderSummary);
-$('#backupData').addEventListener('click',()=>{void backupData();});
+$('#backupData').addEventListener('click',()=>{void backupData().catch(()=>alert('La sauvegarde n’a pas pu être créée. Réessayez.'));});
 $('#restoreFile').addEventListener('change',async event=>{
   const input=event.target, file=input.files&&input.files[0];
-  try{await restoreData(file);}catch{alert('Ce fichier ne semble pas être une sauvegarde Covoiturage valide.');}finally{input.value='';}
+  try{await restoreData(file);}catch(error){
+    alert(error.message==='too-large'?'Ce fichier dépasse la limite de restauration de 20 Mo.':error.message==='future-version'?'Cette sauvegarde provient d’une version plus récente. Mettez à jour l’application avant de la restaurer.':'Ce fichier ne semble pas être une sauvegarde Covoiturage valide. Les données actuelles sont conservées.');
+  }finally{input.value='';}
 });
 $('#export').addEventListener('click',exportCsv);
 
 $('#historyList').addEventListener('click',event=>{
   const button=event.target.closest('.delete-trip'); if(!button) return;
   const id=button.dataset.id;
-  if(confirm('Supprimer ce trajet ?')){data.trips=data.trips.filter(t=>t.id!==id);saveData();renderAll();}
+  if(confirm('Supprimer ce trajet ?')){data.trips=data.trips.filter(t=>t.id!==id);if(saveData()) renderAll();}
 });
 $('#paymentHistory').addEventListener('click',event=>{
+  if(event.target.closest('#morePayments')){
+    const selectedPerson=$('#payPerson').value;
+    paymentDisplayLimit+=8;renderPayments();$('#payPerson').value=selectedPerson;
+    return;
+  }
   const button=event.target.closest('.delete-payment'); if(!button) return;
   const id=button.dataset.id;
-  if(confirm('Supprimer ce versement ?')){data.payments=data.payments.filter(p=>p.id!==id);saveData();renderAll();flash('Versement supprimé');}
+  if(confirm('Supprimer ce versement ?')){data.payments=data.payments.filter(p=>p.id!==id);if(saveData()){renderAll();flash('Versement supprimé');}}
 });
 
 document.addEventListener('click',event=>{
-  const button=event.target.closest('button'); if(!button) return;
+  const button=event.target.closest('button'); if(!button || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   button.animate([{transform:'scale(1)'},{transform:'scale(.97)'},{transform:'scale(1)'}],{duration:180,easing:'ease-out'});
 });
 
 applyTheme();
 renderAll();
+if(storageProblem) alert(storageProblem+' Aucune donnée originale n’a été remplacée. Consultez la rubrique Sauvegarde dans Réglages.');
 
-if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});}
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js',{scope:'./',updateViaCache:'none'}).then(registration=>{
+    const notify=()=>flash('Mise à jour prête : fermez puis rouvrez l’application.');
+    if(registration.waiting) notify();
+    registration.addEventListener('updatefound',()=>{
+      const worker=registration.installing;
+      worker?.addEventListener('statechange',()=>{if(worker.state==='installed' && navigator.serviceWorker.controller) notify();});
+    });
+  }).catch(()=>flash('Le mode hors ligne n’a pas pu être préparé. Réessayez avec une connexion.'));
+}
