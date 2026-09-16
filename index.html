@@ -13,11 +13,11 @@
   <meta name="format-detection" content="telephone=no">
   <meta name="color-scheme" content="light dark">
   <title>Covoiturage</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=26">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=26">
-  <link rel="manifest" href="manifest.webmanifest?v=26">
-  <link rel="stylesheet" href="styles.css?v=26">
-  <script defer src="app.js?v=26"></script>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=28">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=28">
+  <link rel="manifest" href="manifest.webmanifest?v=28">
+  <link rel="stylesheet" href="styles.css?v=28">
+  <script defer src="app.js?v=28"></script>
 </head>
 <body>
   <div class="ambient" aria-hidden="true"></div>
@@ -137,16 +137,16 @@
         <h2 class="date">Sauvegarde des données</h2>
         <p class="small">La sauvegarde contient les trajets, versements, prénoms et réglages. Sur iPhone, vous pouvez enregistrer le fichier dans iCloud Drive.</p>
         <div class="actions">
-          <button class="btn secondary" id="backupData" type="button">Sauvegarder mes données</button>
-          <button class="btn secondary" id="restoreData" type="button">Restaurer une sauvegarde</button>
-          <input accept="application/json,.json" class="hidden" id="restoreFile" type="file">
+          <button class="btn primary" id="backupData" type="button">Sauvegarder mes données</button>
+          <label class="btn primary file-picker" for="restoreFile" id="restoreData" role="button" tabindex="0">Restaurer une sauvegarde</label>
+          <input accept="application/json,.json" class="file-input-native" id="restoreFile" type="file">
         </div>
       </article>
 
       <article class="card content-card security-card">
         <h2 class="date">Confidentialité</h2>
         <p class="small">Les trajets, versements et réglages restent sur cet appareil. L’application n’envoie pas ces données vers un serveur.</p>
-        <div class="version-badge">Version 26 · Liquid Glass</div>
+        <div class="version-badge">Version 28 · Liquid Glass</div>
       </article>
     </section>
 
