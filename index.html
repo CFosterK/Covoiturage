@@ -13,11 +13,11 @@
   <meta name="format-detection" content="telephone=no">
   <meta name="color-scheme" content="light dark">
   <title>Covoiturage</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=36">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=36">
-  <link rel="manifest" href="manifest.webmanifest?v=36">
-  <link rel="stylesheet" href="styles.css?v=36">
-  <script defer src="app.js?v=36"></script>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=37">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=37">
+  <link rel="manifest" href="manifest.webmanifest?v=37">
+  <link rel="stylesheet" href="styles.css?v=37">
+  <script defer src="app.js?v=37"></script>
 </head>
 <body>
   <div class="ambient" aria-hidden="true"></div>
@@ -74,10 +74,15 @@
     <section id="today" class="view" role="tabpanel" tabindex="0">
       <article class="card content-card">
         <h1 class="date">Trajet</h1>
-        <div class="trip-date" id="todayDate"></div>
-        <div class="field">
-          <label for="tripDate">Date du trajet</label>
-          <input id="tripDate" type="date" autocomplete="off">
+        <div class="trip-date-row">
+          <div class="field trip-date-field">
+            <label for="tripDate">Date du trajet</label>
+            <input id="tripDate" type="date" autocomplete="off">
+          </div>
+          <button class="btn secondary compact has-icon today-shortcut" id="setToday" type="button">
+            <span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><rect x="3.5" y="5.5" width="17" height="15" rx="3"/><path d="M7.5 3.5v4M16.5 3.5v4M3.5 9.5h17M12 12.5v4M10 14.5h4"/></svg></span>
+            <span class="btn-label">Aujourd’hui</span>
+          </button>
         </div>
         <div id="people" class="people-list"></div>
       </article>

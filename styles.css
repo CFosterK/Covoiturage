@@ -86,7 +86,6 @@ button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
 .card{margin:14px 0;padding:18px;border-radius:var(--radius);border:1px solid var(--glass-border);background:var(--content);box-shadow:var(--shadow);-webkit-backdrop-filter:blur(22px) saturate(135%);backdrop-filter:blur(22px) saturate(135%);overflow:hidden}
 .date{margin:0 0 14px;font-size:23px;line-height:1.12;letter-spacing:-.025em;font-weight:760;color:var(--text)}
-.trip-date{margin:-2px 0 12px;font-size:17px;line-height:1.25;font-weight:650;color:var(--muted);letter-spacing:-.01em}
 .small{font-size:13px;line-height:1.45;color:var(--muted)}
 .footer{font-size:12px;color:var(--muted);text-align:center;margin:18px 0 0;padding:0 12px}
 
@@ -223,4 +222,10 @@ html[data-theme="dark"] .tab.active .tab-icon{color:var(--accent-2)}
 
 .payment-value .delete-payment{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
 
-@media(max-width:520px){.date{font-size:22px}.trip-date{font-size:16px}}
+@media(max-width:520px){.date{font-size:22px}}
+
+/* V37 — sélection de date simplifiée dans Trajet */
+.trip-date-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end;margin-bottom:6px}
+.trip-date-field{margin:0}
+.today-shortcut{margin-bottom:0;min-width:128px}
+@media(max-width:360px){.trip-date-row{grid-template-columns:1fr}.today-shortcut{width:100%}}

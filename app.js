@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 36;
+const APP_VERSION = 37;
 const STORAGE_KEY = 'covoiturageData';
 const MAX_BACKUP_SIZE = 2_000_000;
 const MAX_PEOPLE = 30;
@@ -308,8 +308,6 @@ function renderSettings(){
 
 function renderAll(){
   if(!$('#tripDate').value) $('#tripDate').value=getToday();
-  const date=safeDate($('#tripDate').value);
-  $('#todayDate').textContent=new Date(`${date}T12:00:00`).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   renderPeople(); renderHistory(); renderSettings(); renderSummary(); renderPayments();
 }
 
@@ -456,8 +454,11 @@ function exportCsv(){
 $$('.tab').forEach(button=>button.addEventListener('click',()=>selectTab(button.dataset.tab)));
 $('#save').addEventListener('click',addTrip);
 $('#tripDate').addEventListener('change',()=>{
-  const date=safeDate($('#tripDate').value||getToday());
-  $('#todayDate').textContent=new Date(`${date}T12:00:00`).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  $('#tripDate').value=safeDate($('#tripDate').value||getToday());
+});
+$('#setToday').addEventListener('click',()=>{
+  $('#tripDate').value=getToday();
+  flash('Date remise à aujourd’hui ✓');
 });
 $('#saveSettings').addEventListener('click',saveSettings);
 $('#energyType').addEventListener('change',updateEnergyLabels);
