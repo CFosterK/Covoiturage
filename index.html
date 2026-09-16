@@ -74,15 +74,9 @@
     <section id="today" class="view" role="tabpanel" tabindex="0">
       <article class="card content-card">
         <h1 class="date">Trajet</h1>
-        <div class="trip-date-row">
-          <div class="field trip-date-field">
-            <label for="tripDate">Date du trajet</label>
-            <input id="tripDate" type="date" autocomplete="off">
-          </div>
-          <button class="btn secondary compact has-icon today-shortcut" id="setToday" type="button">
-            <span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><rect x="3.5" y="5.5" width="17" height="15" rx="3"/><path d="M7.5 3.5v4M16.5 3.5v4M3.5 9.5h17M12 12.5v4M10 14.5h4"/></svg></span>
-            <span class="btn-label">Aujourd’hui</span>
-          </button>
+        <div class="field">
+          <label for="tripDate">Date du trajet</label>
+          <input id="tripDate" type="date" autocomplete="off">
         </div>
         <div id="people" class="people-list"></div>
       </article>
@@ -128,17 +122,6 @@
           <div class="metric"><span>Reste conducteur</span><b id="sDriver">0 €</b></div>
         </div>
         <div id="personSummary" class="summary-list"></div>
-      </article>
-
-      <article class="card content-card">
-        <h2 class="date">Statistiques</h2>
-        <div class="metrics stats-metrics">
-          <div class="metric"><span>Distance parcourue</span><b id="statsKm">0 km</b></div>
-          <div class="metric"><span>Coût moyen / trajet</span><b id="statsAvgCost">0 €</b></div>
-          <div class="metric"><span>Coût conducteur / km</span><b id="statsDriverPerKm">0 €/km</b></div>
-          <div class="metric metric-compact"><span>Énergie consommée</span><b id="statsEnergy">0</b></div>
-        </div>
-        <p class="small stats-note" id="statsNote"></p>
       </article>
 
       <article class="card content-card">
@@ -212,7 +195,7 @@
       <article class="card content-card security-card">
         <h2 class="date">Confidentialité</h2>
         <p class="small">Les trajets, versements et réglages restent sur cet appareil. L’application n’envoie pas ces données vers un serveur.</p>
-        <div class="version-badge">Version 36 · Liquid Glass</div>
+        <div class="version-badge">Version 37 · Liquid Glass</div>
       </article>
     </section>
 

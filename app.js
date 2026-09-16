@@ -203,32 +203,6 @@ function renderPayments(){
   $('#paymentHistory').innerHTML=payments.length?`<div class="small payment-caption">Derniers versements</div>${payments.slice(0,8).map(p=>`<div class="payment-item"><span>${escapeHTML(personName(p.person))}${isArchived(p.person)?'<span class="archive-tag">archivé</span>':''}<br><span class="small">${escapeHTML(new Date(`${p.date}T12:00:00`).toLocaleDateString('fr-FR'))}</span></span><span class="payment-value"><b>${euro(p.amount)}</b><button class="btn danger compact has-icon delete-payment" type="button" aria-label="Supprimer ce versement" data-id="${p.id}">${UI_ICONS.trash}<span class="btn-label">Supprimer</span></button></span></div>`).join('')}`:'<p class="small">Aucun versement enregistré.</p>';
 }
 
-function tripDistance(t){ return Number.isFinite(Number(t.distance)) ? Number(t.distance) : data.settings.distance; }
-function tripEnergyUsed(t){
-  if(Number.isFinite(Number(t.energyUsed))) return Number(t.energyUsed);
-  const consumption=Number.isFinite(Number(t.consumption))?Number(t.consumption):data.settings.consumption;
-  return tripDistance(t)*consumption/100;
-}
-function tripEnergyType(t){ return ['fuel','electric'].includes(t.energyType)?t.energyType:data.settings.energyType; }
-
-function renderStatistics(trips,payments,totalCost,paidTotal){
-  const totalKm=trips.reduce((sum,t)=>sum+tripDistance(t),0);
-  const avgCost=trips.length?totalCost/trips.length:0;
-  const driverCost=totalCost-paidTotal;
-  const driverPerKm=totalKm?driverCost/totalKm:0;
-  let fuel=0,electric=0;
-  trips.forEach(t=>{const used=tripEnergyUsed(t); if(tripEnergyType(t)==='electric') electric+=used; else fuel+=used;});
-  const energy=[];
-  if(fuel>0) energy.push(`${decimal(fuel)} L`);
-  if(electric>0) energy.push(`${decimal(electric)} kWh`);
-  $('#statsKm').textContent=`${decimal(totalKm,0)} km`;
-  $('#statsAvgCost').textContent=euro(avgCost);
-  $('#statsDriverPerKm').textContent=`${decimal(driverPerKm,2)} €/km`;
-  $('#statsEnergy').textContent=energy.length?energy.join(' + '):'0';
-  const estimated=trips.some(t=>t.distance===null||t.energyUsed===null||t.energyType===null);
-  $('#statsNote').textContent=estimated?'Les anciens trajets sans instantané utilisent les réglages actuels pour estimer la distance et l’énergie.':'';
-}
-
 function renderSummary(){
   const trips=filteredTrips().filter(t=>!t.noTrip);
   const payments=filteredPayments();
@@ -248,7 +222,6 @@ function renderSummary(){
     const cls=balance>0?'balance-positive':balance<0?'balance-credit':'balance-zero';
     return `<div class="summaryPerson"><span>${escapeHTML(personName(i))}${isArchived(i)?'<span class="archive-tag">archivé</span>':''}<br><span class="small">${personTrips.length} jour(s) · dû ${euro(due)} · versé ${euro(paid)}</span></span><span class="${cls}">${state}</span></div>`;
   }).join('');
-  renderStatistics(trips,payments,totalCost,paidTotal);
 }
 
 function applyTheme(){
@@ -453,13 +426,6 @@ function exportCsv(){
 
 $$('.tab').forEach(button=>button.addEventListener('click',()=>selectTab(button.dataset.tab)));
 $('#save').addEventListener('click',addTrip);
-$('#tripDate').addEventListener('change',()=>{
-  $('#tripDate').value=safeDate($('#tripDate').value||getToday());
-});
-$('#setToday').addEventListener('click',()=>{
-  $('#tripDate').value=getToday();
-  flash('Date remise à aujourd’hui ✓');
-});
 $('#saveSettings').addEventListener('click',saveSettings);
 $('#energyType').addEventListener('change',updateEnergyLabels);
 $('#distance').addEventListener('input',updateVehicleCostHelp);

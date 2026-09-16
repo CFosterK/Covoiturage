@@ -165,9 +165,6 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .energy-help{margin:-2px 0 14px}
 
 /* V30 — statistiques, sauvegarde et gestion dynamique des passagers */
-.stats-metrics{margin-top:4px}
-.metric-compact b{font-size:20px;line-height:1.2;word-break:break-word}
-.stats-note{margin:12px 2px 0}
 .people-settings-list{margin:4px 0 12px}
 .person-setting-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end;padding:8px 0;border-bottom:1px solid var(--hairline)}
 .person-setting-row:last-child{border-bottom:0}
@@ -223,9 +220,3 @@ html[data-theme="dark"] .tab.active .tab-icon{color:var(--accent-2)}
 .payment-value .delete-payment{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
 
 @media(max-width:520px){.date{font-size:22px}}
-
-/* V37 — sélection de date simplifiée dans Trajet */
-.trip-date-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end;margin-bottom:6px}
-.trip-date-field{margin:0}
-.today-shortcut{margin-bottom:0;min-width:128px}
-@media(max-width:360px){.trip-date-row{grid-template-columns:1fr}.today-shortcut{width:100%}}
