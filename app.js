@@ -1,10 +1,10 @@
 'use strict';
 
-const APP_VERSION = 28;
+const APP_VERSION = 29;
 const STORAGE_KEY = 'covoiturageData';
 const MAX_BACKUP_SIZE = 2_000_000;
 const DEFAULT_DATA = Object.freeze({
-  settings:{distance:85,consumption:6,energyPrice:2.31,energyType:'fuel',toll:6,carFee:5,theme:'system'},
+  settings:{distance:85,consumption:6,energyPrice:2.31,energyType:'fuel',toll:6,vehicleCostPerKm:0.10,theme:'system'},
   people:['Passager 1','Passager 2','Passager 3'],
   trips:[],
   payments:[]
@@ -37,13 +37,19 @@ function normalizeData(raw){
   if(!raw || typeof raw!=='object' || Array.isArray(raw)) return base;
   const s=raw.settings && typeof raw.settings==='object' ? raw.settings : {};
   const legacyEnergyPrice=s.energyPrice ?? s.diesel;
+  const distance=clamp(s.distance,0,2000,85);
+  // Migration V28 et antérieures : l'ancien frais fixe par trajet est converti
+  // en coût au kilomètre afin de conserver le même coût total après mise à jour.
+  const legacyVehicleCostPerKm = Number.isFinite(Number(s.vehicleCostPerKm))
+    ? Number(s.vehicleCostPerKm)
+    : (distance>0 && Number.isFinite(Number(s.carFee)) ? Number(s.carFee)/distance : 0.10);
   base.settings={
-    distance:clamp(s.distance,0,2000,85),
+    distance,
     consumption:clamp(s.consumption,0,100,6),
     energyPrice:clamp(legacyEnergyPrice,0,20,2.31),
     energyType:['fuel','electric'].includes(s.energyType)?s.energyType:'fuel',
     toll:clamp(s.toll,0,1000,6),
-    carFee:clamp(s.carFee,0,1000,5),
+    vehicleCostPerKm:clamp(legacyVehicleCostPerKm,0,10,0.10),
     theme:['system','light','dark'].includes(s.theme)?s.theme:'system'
   };
   const incomingPeople=Array.isArray(raw.people)?raw.people:[];
@@ -84,7 +90,8 @@ function flash(message){
   flash.timer=setTimeout(()=>{el.textContent='';},2200);
 }
 
-const tripCost = () => data.settings.distance*data.settings.consumption/100*data.settings.energyPrice+data.settings.toll+data.settings.carFee;
+const vehicleCostPerTrip = () => data.settings.distance*data.settings.vehicleCostPerKm;
+const tripCost = () => data.settings.distance*data.settings.consumption/100*data.settings.energyPrice+data.settings.toll+vehicleCostPerTrip();
 const rate = n => n ? Math.round(tripCost()/(n+1)) : 0;
 
 function renderPeople(){
@@ -186,11 +193,20 @@ function updateEnergyLabels(){
   $('#energyHelp').textContent=electric?'Le calcul utilise la consommation en kWh/100 km et le prix de l’électricité en €/kWh.':'Le calcul utilise la consommation en L/100 km et le prix du carburant en €/L.';
 }
 
+function updateVehicleCostHelp(){
+  const distance=finite($('#distance').value,data.settings.distance);
+  const perKm=finite($('#vehicleCostPerKm').value,data.settings.vehicleCostPerKm);
+  const perTrip=Math.max(0,distance)*Math.max(0,perKm);
+  const amount=perTrip.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  $('#vehicleCostHelp').textContent=`Soit ${amount} € pour ${Math.max(0,distance).toLocaleString('fr-FR')} km. Ce coût couvre notamment l’usure, l’entretien et la décote du véhicule.`;
+}
+
 function renderSettings(){
   $('#themeMode').value=data.settings.theme||'system';
   $('#energyType').value=data.settings.energyType||'fuel';
-  for(const key of ['distance','consumption','energyPrice','toll','carFee']) $(`#${key}`).value=data.settings[key];
+  for(const key of ['distance','consumption','energyPrice','toll','vehicleCostPerKm']) $(`#${key}`).value=data.settings[key];
   updateEnergyLabels();
+  updateVehicleCostHelp();
   data.people.forEach((name,i)=>{$(`#p${i}`).value=name;});
   $('#rates').innerHTML=[1,2,3].map(n=>`<div class="summaryPerson"><span>${n} passager${n>1?'s':''}</span><b>${euro(rate(n))} / passager</b></div>`).join('');
 }
@@ -217,7 +233,7 @@ function selectTab(tab){
 }
 
 function saveSettings(){
-  const limits={distance:[0,2000],consumption:[0,100],energyPrice:[0,20],toll:[0,1000],carFee:[0,1000]};
+  const limits={distance:[0,2000],consumption:[0,100],energyPrice:[0,20],toll:[0,1000],vehicleCostPerKm:[0,10]};
   const next={...data.settings};
   for(const [key,[min,max]] of Object.entries(limits)){
     const el=$(`#${key}`), value=Number(el.value);
@@ -297,6 +313,8 @@ $('#tripDate').addEventListener('change',()=>{
 });
 $('#saveSettings').addEventListener('click',saveSettings);
 $('#energyType').addEventListener('change',updateEnergyLabels);
+$('#distance').addEventListener('input',updateVehicleCostHelp);
+$('#vehicleCostPerKm').addEventListener('input',updateVehicleCostHelp);
 $('#savePeople').addEventListener('click',savePeople);
 $('#addPayment').addEventListener('click',addPayment);
 $('#themeMode').addEventListener('change',event=>{data.settings.theme=event.target.value;saveData();applyTheme();flash('Apparence mise à jour ✓');});
