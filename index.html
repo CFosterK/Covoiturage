@@ -13,11 +13,11 @@
   <meta name="format-detection" content="telephone=no">
   <meta name="color-scheme" content="light dark">
   <title>Covoiturage</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=27">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=27">
-  <link rel="manifest" href="manifest.webmanifest?v=27">
-  <link rel="stylesheet" href="styles.css?v=27">
-  <script defer src="app.js?v=27"></script>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=28">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=28">
+  <link rel="manifest" href="manifest.webmanifest?v=28">
+  <link rel="stylesheet" href="styles.css?v=28">
+  <script defer src="app.js?v=28"></script>
 </head>
 <body>
   <div class="ambient" aria-hidden="true"></div>
@@ -111,11 +111,13 @@
         <h2 class="date">Paramètres du trajet</h2>
         <div class="row">
           <div class="field"><label for="distance">Distance A/R (km)</label><input id="distance" type="number" min="0" max="2000" step="1" inputmode="decimal"></div>
-          <div class="field"><label for="consumption">Consommation (L/100)</label><input id="consumption" type="number" min="0" max="100" step="0.1" inputmode="decimal"></div>
-          <div class="field"><label for="diesel">Diesel (€/L)</label><input id="diesel" type="number" min="0" max="20" step="0.01" inputmode="decimal"></div>
+          <div class="field"><label for="energyType">Type d’énergie</label><select id="energyType"><option value="fuel">Carburant</option><option value="electric">Électricité</option></select></div>
+          <div class="field"><label id="consumptionLabel" for="consumption">Consommation (L/100 km)</label><input id="consumption" type="number" min="0" max="100" step="0.1" inputmode="decimal"></div>
+          <div class="field"><label id="energyPriceLabel" for="energyPrice">Prix énergie / carburant (€/L)</label><input id="energyPrice" type="number" min="0" max="20" step="0.01" inputmode="decimal"></div>
           <div class="field"><label for="toll">Péage A/R (€)</label><input id="toll" type="number" min="0" max="1000" step="0.1" inputmode="decimal"></div>
         </div>
         <div class="field"><label for="carFee">Frais voiture / trajet (€)</label><input id="carFee" type="number" min="0" max="1000" step="0.5" inputmode="decimal"></div>
+        <p class="small energy-help" id="energyHelp">Le calcul utilise la consommation en L/100 km et le prix en €/L.</p>
         <button class="btn primary" id="saveSettings" type="button">Enregistrer les réglages</button>
       </article>
 
@@ -148,7 +150,7 @@
       <article class="card content-card security-card">
         <h2 class="date">Confidentialité</h2>
         <p class="small">Les trajets, versements et réglages restent sur cet appareil. L’application n’envoie pas ces données vers un serveur.</p>
-        <div class="version-badge">Version 27 · Liquid Glass</div>
+        <div class="version-badge">Version 28 · Liquid Glass</div>
       </article>
     </section>
 

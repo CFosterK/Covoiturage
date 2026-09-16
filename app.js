@@ -1,10 +1,10 @@
 'use strict';
 
-const APP_VERSION = 27;
+const APP_VERSION = 28;
 const STORAGE_KEY = 'covoiturageData';
 const MAX_BACKUP_SIZE = 2_000_000;
 const DEFAULT_DATA = Object.freeze({
-  settings:{distance:85,consumption:6,diesel:2.31,toll:6,carFee:5,theme:'system'},
+  settings:{distance:85,consumption:6,energyPrice:2.31,energyType:'fuel',toll:6,carFee:5,theme:'system'},
   people:['Passager 1','Passager 2','Passager 3'],
   trips:[],
   payments:[]
@@ -36,10 +36,12 @@ function normalizeData(raw){
   const base=cloneDefaults();
   if(!raw || typeof raw!=='object' || Array.isArray(raw)) return base;
   const s=raw.settings && typeof raw.settings==='object' ? raw.settings : {};
+  const legacyEnergyPrice=s.energyPrice ?? s.diesel;
   base.settings={
     distance:clamp(s.distance,0,2000,85),
     consumption:clamp(s.consumption,0,100,6),
-    diesel:clamp(s.diesel,0,20,2.31),
+    energyPrice:clamp(legacyEnergyPrice,0,20,2.31),
+    energyType:['fuel','electric'].includes(s.energyType)?s.energyType:'fuel',
     toll:clamp(s.toll,0,1000,6),
     carFee:clamp(s.carFee,0,1000,5),
     theme:['system','light','dark'].includes(s.theme)?s.theme:'system'
@@ -82,7 +84,7 @@ function flash(message){
   flash.timer=setTimeout(()=>{el.textContent='';},2200);
 }
 
-const tripCost = () => data.settings.distance*data.settings.consumption/100*data.settings.diesel+data.settings.toll+data.settings.carFee;
+const tripCost = () => data.settings.distance*data.settings.consumption/100*data.settings.energyPrice+data.settings.toll+data.settings.carFee;
 const rate = n => n ? Math.round(tripCost()/(n+1)) : 0;
 
 function renderPeople(){
@@ -177,9 +179,18 @@ function applyTheme(){
   $('meta[name="theme-color"]').setAttribute('content',dark?'#0b1017':'#e9eef6');
 }
 
+function updateEnergyLabels(){
+  const electric=$('#energyType').value==='electric';
+  $('#consumptionLabel').textContent=electric?'Consommation (kWh/100 km)':'Consommation (L/100 km)';
+  $('#energyPriceLabel').textContent=electric?'Prix énergie / carburant (€/kWh)':'Prix énergie / carburant (€/L)';
+  $('#energyHelp').textContent=electric?'Le calcul utilise la consommation en kWh/100 km et le prix de l’électricité en €/kWh.':'Le calcul utilise la consommation en L/100 km et le prix du carburant en €/L.';
+}
+
 function renderSettings(){
   $('#themeMode').value=data.settings.theme||'system';
-  for(const key of ['distance','consumption','diesel','toll','carFee']) $(`#${key}`).value=data.settings[key];
+  $('#energyType').value=data.settings.energyType||'fuel';
+  for(const key of ['distance','consumption','energyPrice','toll','carFee']) $(`#${key}`).value=data.settings[key];
+  updateEnergyLabels();
   data.people.forEach((name,i)=>{$(`#p${i}`).value=name;});
   $('#rates').innerHTML=[1,2,3].map(n=>`<div class="summaryPerson"><span>${n} passager${n>1?'s':''}</span><b>${euro(rate(n))} / passager</b></div>`).join('');
 }
@@ -206,13 +217,14 @@ function selectTab(tab){
 }
 
 function saveSettings(){
-  const limits={distance:[0,2000],consumption:[0,100],diesel:[0,20],toll:[0,1000],carFee:[0,1000]};
+  const limits={distance:[0,2000],consumption:[0,100],energyPrice:[0,20],toll:[0,1000],carFee:[0,1000]};
   const next={...data.settings};
   for(const [key,[min,max]] of Object.entries(limits)){
     const el=$(`#${key}`), value=Number(el.value);
     if(!Number.isFinite(value)||value<min||value>max){ alert(`Merci de saisir une valeur valide pour ${key}.`); el.focus(); return; }
     next[key]=value;
   }
+  next.energyType=['fuel','electric'].includes($('#energyType').value)?$('#energyType').value:'fuel';
   data.settings=next;
   if(saveData()){renderSettings();calcToday();renderSummary();flash('Réglages enregistrés ✓');}
 }
@@ -284,6 +296,7 @@ $('#tripDate').addEventListener('change',()=>{
   $('#todayDate').textContent=new Date(`${date}T12:00:00`).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 });
 $('#saveSettings').addEventListener('click',saveSettings);
+$('#energyType').addEventListener('change',updateEnergyLabels);
 $('#savePeople').addEventListener('click',savePeople);
 $('#addPayment').addEventListener('click',addPayment);
 $('#themeMode').addEventListener('change',event=>{data.settings.theme=event.target.value;saveData();applyTheme();flash('Apparence mise à jour ✓');});
