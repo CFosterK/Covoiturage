@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 28;
+const APP_VERSION = 27;
 const STORAGE_KEY = 'covoiturageData';
 const MAX_BACKUP_SIZE = 2_000_000;
 const DEFAULT_DATA = Object.freeze({
@@ -238,21 +238,19 @@ function downloadBlob(blob,filename){
 
 async function backupData(){
   const payload={app:'Covoiturage',version:APP_VERSION,exportedAt:new Date().toISOString(),data};
-  const json=JSON.stringify(payload,null,2);
   const filename=`covoiturage-sauvegarde-${getToday()}.json`;
-  const file=new File([json],filename,{type:'application/json'});
-
-  if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
-    try{
-      await navigator.share({title:'Sauvegarde Covoiturage',files:[file]});
+  const content=JSON.stringify(payload,null,2);
+  try{
+    const file=new File([content],filename,{type:'application/json'});
+    if(navigator.share&&navigator.canShare?.({files:[file]})){
+      await navigator.share({files:[file],title:'Sauvegarde Covoiturage'});
       flash('Sauvegarde prête ✓');
       return;
-    }catch(error){
-      if(error && error.name==='AbortError') return;
     }
+  }catch(error){
+    if(error&&error.name==='AbortError') return;
   }
-
-  downloadBlob(new Blob([json],{type:'application/json'}),filename);
+  downloadBlob(new Blob([content],{type:'application/json'}),filename);
   flash('Sauvegarde créée ✓');
 }
 
@@ -291,8 +289,7 @@ $('#addPayment').addEventListener('click',addPayment);
 $('#themeMode').addEventListener('change',event=>{data.settings.theme=event.target.value;saveData();applyTheme();flash('Apparence mise à jour ✓');});
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if((data.settings.theme||'system')==='system')applyTheme();});
 $('#period').addEventListener('change',renderSummary);
-$('#backupData').addEventListener('click',backupData);
-$('#restoreData').addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();$('#restoreFile').click();}});
+$('#backupData').addEventListener('click',()=>{void backupData();});
 $('#restoreFile').addEventListener('change',async event=>{
   const input=event.target, file=input.files&&input.files[0];
   try{await restoreData(file);}catch{alert('Ce fichier ne semble pas être une sauvegarde Covoiturage valide.');}finally{input.value='';}

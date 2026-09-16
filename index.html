@@ -13,11 +13,11 @@
   <meta name="format-detection" content="telephone=no">
   <meta name="color-scheme" content="light dark">
   <title>Covoiturage</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=28">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=28">
-  <link rel="manifest" href="manifest.webmanifest?v=28">
-  <link rel="stylesheet" href="styles.css?v=28">
-  <script defer src="app.js?v=28"></script>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=27">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=27">
+  <link rel="manifest" href="manifest.webmanifest?v=27">
+  <link rel="stylesheet" href="styles.css?v=27">
+  <script defer src="app.js?v=27"></script>
 </head>
 <body>
   <div class="ambient" aria-hidden="true"></div>
@@ -136,17 +136,19 @@
       <article class="card content-card">
         <h2 class="date">Sauvegarde des données</h2>
         <p class="small">La sauvegarde contient les trajets, versements, prénoms et réglages. Sur iPhone, vous pouvez enregistrer le fichier dans iCloud Drive.</p>
-        <div class="actions">
+        <div class="actions data-actions">
           <button class="btn primary" id="backupData" type="button">Sauvegarder mes données</button>
-          <label class="btn primary file-picker" for="restoreFile" id="restoreData" role="button" tabindex="0">Restaurer une sauvegarde</label>
-          <input accept="application/json,.json" class="file-input-native" id="restoreFile" type="file">
+          <div class="file-picker">
+            <span class="btn primary file-picker-face" aria-hidden="true">Restaurer une sauvegarde</span>
+            <input accept="application/json,.json" id="restoreFile" type="file" aria-label="Restaurer une sauvegarde Covoiturage">
+          </div>
         </div>
       </article>
 
       <article class="card content-card security-card">
         <h2 class="date">Confidentialité</h2>
         <p class="small">Les trajets, versements et réglages restent sur cet appareil. L’application n’envoie pas ces données vers un serveur.</p>
-        <div class="version-badge">Version 28 · Liquid Glass</div>
+        <div class="version-badge">Version 27 · Liquid Glass</div>
       </article>
     </section>
 
