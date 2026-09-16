@@ -1,11 +1,15 @@
 'use strict';
 
-const APP_VERSION = 29;
+const APP_VERSION = 32;
 const STORAGE_KEY = 'covoiturageData';
 const MAX_BACKUP_SIZE = 2_000_000;
+const MAX_PEOPLE = 30;
+const BACKUP_REMINDER_DAYS = 30;
 const DEFAULT_DATA = Object.freeze({
   settings:{distance:85,consumption:6,energyPrice:2.31,energyType:'fuel',toll:6,vehicleCostPerKm:0.10,theme:'system'},
   people:['Passager 1','Passager 2','Passager 3'],
+  archivedPeople:[],
+  lastBackupAt:null,
   trips:[],
   payments:[]
 });
@@ -22,8 +26,13 @@ const safeId = value => /^[A-Za-z0-9_-]{1,80}$/.test(String(value||'')) ? String
 const safeDate = (value, fallback=getToday()) => {
   const s=String(value||'');
   if(!/^\d{4}-\d{2}-\d{2}$/.test(s)) return fallback;
-  const d=new Date(`${s}T12:00:00`);
-  return Number.isNaN(d.getTime()) ? fallback : s;
+  const [y,m,d]=s.split('-').map(Number), date=new Date(y,m-1,d,12);
+  return date.getFullYear()===y && date.getMonth()===m-1 && date.getDate()===d ? s : fallback;
+};
+const safeIsoDateTime = value => {
+  if(typeof value!=='string' || value.length>60) return null;
+  const d=new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
 };
 const cleanName = (value, fallback) => {
   const text=String(value??'').replace(/[\u0000-\u001F\u007F]/g,' ').replace(/\s+/g,' ').trim().slice(0,40);
@@ -31,6 +40,7 @@ const cleanName = (value, fallback) => {
 };
 const escapeHTML = value => String(value).replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
 const euro = n => `${Math.round(finite(n,0))} €`;
+const decimal = (n,digits=1) => finite(n,0).toLocaleString('fr-FR',{minimumFractionDigits:0,maximumFractionDigits:digits});
 
 function normalizeData(raw){
   const base=cloneDefaults();
@@ -38,8 +48,6 @@ function normalizeData(raw){
   const s=raw.settings && typeof raw.settings==='object' ? raw.settings : {};
   const legacyEnergyPrice=s.energyPrice ?? s.diesel;
   const distance=clamp(s.distance,0,2000,85);
-  // Migration V28 et antérieures : l'ancien frais fixe par trajet est converti
-  // en coût au kilomètre afin de conserver le même coût total après mise à jour.
   const legacyVehicleCostPerKm = Number.isFinite(Number(s.vehicleCostPerKm))
     ? Number(s.vehicleCostPerKm)
     : (distance>0 && Number.isFinite(Number(s.carFee)) ? Number(s.carFee)/distance : 0.10);
@@ -52,25 +60,41 @@ function normalizeData(raw){
     vehicleCostPerKm:clamp(legacyVehicleCostPerKm,0,10,0.10),
     theme:['system','light','dark'].includes(s.theme)?s.theme:'system'
   };
+
   const incomingPeople=Array.isArray(raw.people)?raw.people:[];
-  base.people=[0,1,2].map(i=>cleanName(incomingPeople[i],`Passager ${i+1}`));
+  if(incomingPeople.length){
+    base.people=incomingPeople.slice(0,MAX_PEOPLE).map((name,i)=>cleanName(name,`Passager ${i+1}`));
+  }
+  if(!base.people.length) base.people=['Passager 1'];
+  const maxIndex=base.people.length-1;
+  base.archivedPeople=[...new Set((Array.isArray(raw.archivedPeople)?raw.archivedPeople:[]).map(Number).filter(i=>Number.isInteger(i)&&i>=0&&i<=maxIndex))];
+  base.lastBackupAt=safeIsoDateTime(raw.lastBackupAt);
+
   const trips=Array.isArray(raw.trips)?raw.trips.slice(-10000):[];
   base.trips=trips.filter(t=>t&&typeof t==='object').map(t=>({
     id:safeId(t.id),
     date:safeDate(t.date),
-    people:[...new Set(Array.isArray(t.people)?t.people.map(Number).filter(i=>Number.isInteger(i)&&i>=0&&i<3):[])],
+    people:[...new Set(Array.isArray(t.people)?t.people.map(Number).filter(i=>Number.isInteger(i)&&i>=0&&i<=maxIndex):[])],
     noTrip:Boolean(t.noTrip),
     rate:clamp(t.rate,0,10000,0),
     cost:clamp(t.cost,0,10000,0),
-    createdAt:typeof t.createdAt==='string'?t.createdAt.slice(0,60):new Date().toISOString()
+    createdAt:safeIsoDateTime(t.createdAt)||new Date().toISOString(),
+    distance:Number.isFinite(Number(t.distance))?clamp(t.distance,0,2000,0):null,
+    consumption:Number.isFinite(Number(t.consumption))?clamp(t.consumption,0,100,0):null,
+    energyType:['fuel','electric'].includes(t.energyType)?t.energyType:null,
+    energyPrice:Number.isFinite(Number(t.energyPrice))?clamp(t.energyPrice,0,20,0):null,
+    energyUsed:Number.isFinite(Number(t.energyUsed))?clamp(t.energyUsed,0,10000,0):null,
+    vehicleCostPerKm:Number.isFinite(Number(t.vehicleCostPerKm))?clamp(t.vehicleCostPerKm,0,10,0):null,
+    toll:Number.isFinite(Number(t.toll))?clamp(t.toll,0,1000,0):null
   }));
+
   const payments=Array.isArray(raw.payments)?raw.payments.slice(-10000):[];
   base.payments=payments.filter(p=>p&&typeof p==='object').map(p=>({
     id:safeId(p.id),
-    person:clamp(Math.trunc(finite(p.person,0)),0,2,0),
+    person:Number(p.person),
     amount:clamp(p.amount,0,1_000_000,0),
     date:safeDate(p.date)
-  })).filter(p=>p.amount>0);
+  })).filter(p=>Number.isInteger(p.person)&&p.person>=0&&p.person<=maxIndex&&p.amount>0);
   return base;
 }
 
@@ -90,13 +114,25 @@ function flash(message){
   flash.timer=setTimeout(()=>{el.textContent='';},2200);
 }
 
+const personName = index => data.people[index] || `Passager ${Number(index)+1}`;
+const isArchived = index => data.archivedPeople.includes(index);
+const activePeopleIndices = () => data.people.map((_,i)=>i).filter(i=>!isArchived(i));
 const vehicleCostPerTrip = () => data.settings.distance*data.settings.vehicleCostPerKm;
 const tripCost = () => data.settings.distance*data.settings.consumption/100*data.settings.energyPrice+data.settings.toll+vehicleCostPerTrip();
 const rate = n => n ? Math.round(tripCost()/(n+1)) : 0;
 
 function renderPeople(){
-  $('#people').innerHTML=data.people.map((name,i)=>`<label class="person"><input type="checkbox" data-person="${i}"><span>${escapeHTML(name)}</span></label>`).join('');
-  $$('[data-person]').forEach(el=>el.addEventListener('change',calcToday));
+  const active=activePeopleIndices();
+  $('#people').innerHTML=active.length
+    ? active.map(i=>`<label class="person"><input type="checkbox" data-person="${i}"><span>${escapeHTML(personName(i))}</span></label>`).join('')
+    : '<p class="small">Aucun passager actif. Vous pouvez en ajouter ou en réactiver dans Réglages.</p>';
+  $$('[data-person]').forEach(el=>el.addEventListener('change',event=>{
+    if(event.target.checked && $$('[data-person]:checked').length>3){
+      event.target.checked=false;
+      alert('Maximum 3 passagers par trajet.');
+    }
+    calcToday();
+  }));
   calcToday();
 }
 
@@ -111,17 +147,19 @@ function calcToday(){
 function addTrip(){
   const people=$$('[data-person]:checked').map(el=>Number(el.dataset.person));
   const selectedDate=safeDate($('#tripDate').value||getToday());
-  data.trips.push({id:makeId(),date:selectedDate,people,noTrip:false,rate:rate(people.length),cost:tripCost(),createdAt:new Date().toISOString()});
-  if(saveData()){
-    renderAll();
-    flash('Nouveau trajet enregistré ✓');
-  }
+  const distance=data.settings.distance, consumption=data.settings.consumption;
+  data.trips.push({
+    id:makeId(),date:selectedDate,people,noTrip:false,rate:rate(people.length),cost:tripCost(),createdAt:new Date().toISOString(),
+    distance,consumption,energyType:data.settings.energyType,energyPrice:data.settings.energyPrice,
+    energyUsed:distance*consumption/100,vehicleCostPerKm:data.settings.vehicleCostPerKm,toll:data.settings.toll
+  });
+  if(saveData()){ renderAll(); flash('Nouveau trajet enregistré ✓'); }
 }
 
 function renderHistory(){
   const trips=[...data.trips].sort((a,b)=>b.date.localeCompare(a.date));
   $('#historyList').innerHTML=trips.length?trips.map(t=>{
-    const people=t.noTrip?'Aucun trajet':t.people.map(i=>`<span class="pill">${escapeHTML(data.people[i]||'Passager')}</span>`).join('');
+    const people=t.noTrip?'Aucun trajet':t.people.map(i=>`<span class="pill">${escapeHTML(personName(i))}</span>`).join('');
     const details=t.noTrip?'':`${t.people.length} passager(s) · ${euro(t.rate)} chacun · ${euro(t.rate*t.people.length)} total`;
     const label=new Date(`${t.date}T12:00:00`).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
     return `<div class="history-item"><div class="history-head"><b>${escapeHTML(label)}</b></div><div>${people}</div><div class="small">${details}</div><div class="history-actions"><button class="btn secondary danger delete-trip" type="button" data-id="${t.id}">Supprimer</button></div></div>`;
@@ -153,10 +191,36 @@ function filteredPayments(){
 }
 
 function renderPayments(){
-  $('#payPerson').innerHTML=data.people.map((name,i)=>`<option value="${i}">${escapeHTML(name)}</option>`).join('');
+  $('#payPerson').innerHTML=data.people.map((name,i)=>`<option value="${i}">${escapeHTML(name)}${isArchived(i)?' (archivé)':''}</option>`).join('');
   if(!$('#payDate').value) $('#payDate').value=getToday();
   const payments=[...data.payments].sort((a,b)=>b.date.localeCompare(a.date));
-  $('#paymentHistory').innerHTML=payments.length?`<div class="small payment-caption">Derniers versements</div>${payments.slice(0,8).map(p=>`<div class="payment-item"><span>${escapeHTML(data.people[p.person]||'Passager')}<br><span class="small">${escapeHTML(new Date(`${p.date}T12:00:00`).toLocaleDateString('fr-FR'))}</span></span><span class="payment-value"><b>${euro(p.amount)}</b><button class="btn secondary danger icon-button delete-payment" type="button" aria-label="Supprimer ce versement" data-id="${p.id}">×</button></span></div>`).join('')}`:'<p class="small">Aucun versement enregistré.</p>';
+  $('#paymentHistory').innerHTML=payments.length?`<div class="small payment-caption">Derniers versements</div>${payments.slice(0,8).map(p=>`<div class="payment-item"><span>${escapeHTML(personName(p.person))}${isArchived(p.person)?'<span class="archive-tag">archivé</span>':''}<br><span class="small">${escapeHTML(new Date(`${p.date}T12:00:00`).toLocaleDateString('fr-FR'))}</span></span><span class="payment-value"><b>${euro(p.amount)}</b><button class="btn secondary danger icon-button delete-payment" type="button" aria-label="Supprimer ce versement" data-id="${p.id}">×</button></span></div>`).join('')}`:'<p class="small">Aucun versement enregistré.</p>';
+}
+
+function tripDistance(t){ return Number.isFinite(Number(t.distance)) ? Number(t.distance) : data.settings.distance; }
+function tripEnergyUsed(t){
+  if(Number.isFinite(Number(t.energyUsed))) return Number(t.energyUsed);
+  const consumption=Number.isFinite(Number(t.consumption))?Number(t.consumption):data.settings.consumption;
+  return tripDistance(t)*consumption/100;
+}
+function tripEnergyType(t){ return ['fuel','electric'].includes(t.energyType)?t.energyType:data.settings.energyType; }
+
+function renderStatistics(trips,payments,totalCost,paidTotal){
+  const totalKm=trips.reduce((sum,t)=>sum+tripDistance(t),0);
+  const avgCost=trips.length?totalCost/trips.length:0;
+  const driverCost=totalCost-paidTotal;
+  const driverPerKm=totalKm?driverCost/totalKm:0;
+  let fuel=0,electric=0;
+  trips.forEach(t=>{const used=tripEnergyUsed(t); if(tripEnergyType(t)==='electric') electric+=used; else fuel+=used;});
+  const energy=[];
+  if(fuel>0) energy.push(`${decimal(fuel)} L`);
+  if(electric>0) energy.push(`${decimal(electric)} kWh`);
+  $('#statsKm').textContent=`${decimal(totalKm,0)} km`;
+  $('#statsAvgCost').textContent=euro(avgCost);
+  $('#statsDriverPerKm').textContent=`${decimal(driverPerKm,2)} €/km`;
+  $('#statsEnergy').textContent=energy.length?energy.join(' + '):'0';
+  const estimated=trips.some(t=>t.distance===null||t.energyUsed===null||t.energyType===null);
+  $('#statsNote').textContent=estimated?'Les anciens trajets sans instantané utilisent les réglages actuels pour estimer la distance et l’énergie.':'';
 }
 
 function renderSummary(){
@@ -168,15 +232,17 @@ function renderSummary(){
   $('#sReceived').textContent=euro(paidTotal);
   $('#sCost').textContent=euro(totalCost);
   $('#sDriver').textContent=euro(totalCost-paidTotal);
-  $('#personSummary').innerHTML=data.people.map((name,i)=>{
+  const relevantPeople=data.people.map((_,i)=>i).filter(i=>!isArchived(i)||trips.some(t=>t.people.includes(i))||payments.some(p=>p.person===i));
+  $('#personSummary').innerHTML=relevantPeople.map(i=>{
     const personTrips=trips.filter(t=>t.people.includes(i));
     const due=personTrips.reduce((sum,t)=>sum+t.rate,0);
     const paid=payments.filter(p=>p.person===i).reduce((sum,p)=>sum+p.amount,0);
     const balance=due-paid;
     const state=balance>0?`${euro(balance)} à payer`:balance<0?`Crédit ${euro(Math.abs(balance))}`:'Soldé ✓';
     const cls=balance>0?'balance-positive':balance<0?'balance-credit':'balance-zero';
-    return `<div class="summaryPerson"><span>${escapeHTML(name)}<br><span class="small">${personTrips.length} jour(s) · dû ${euro(due)} · versé ${euro(paid)}</span></span><span class="${cls}">${state}</span></div>`;
+    return `<div class="summaryPerson"><span>${escapeHTML(personName(i))}${isArchived(i)?'<span class="archive-tag">archivé</span>':''}<br><span class="small">${personTrips.length} jour(s) · dû ${euro(due)} · versé ${euro(paid)}</span></span><span class="${cls}">${state}</span></div>`;
   }).join('');
+  renderStatistics(trips,payments,totalCost,paidTotal);
 }
 
 function applyTheme(){
@@ -201,13 +267,36 @@ function updateVehicleCostHelp(){
   $('#vehicleCostHelp').textContent=`Soit ${amount} € pour ${Math.max(0,distance).toLocaleString('fr-FR')} km. Ce coût couvre notamment l’usure, l’entretien et la décote du véhicule.`;
 }
 
+function renderPeopleSettings(){
+  const active=activePeopleIndices();
+  $('#activePeopleSettings').innerHTML=active.length?active.map((i,position)=>`<div class="person-setting-row"><div class="field"><label for="personName${i}">Passager ${position+1}</label><input id="personName${i}" data-person-name="${i}" maxlength="40" autocomplete="off" value="${escapeHTML(personName(i))}"></div><button class="btn secondary archive-person" type="button" data-person-index="${i}">Archiver</button></div>`).join(''):'<p class="small">Aucun passager actif.</p>';
+  const archived=data.archivedPeople.filter(i=>i>=0&&i<data.people.length);
+  $('#archivedPeopleSection').classList.toggle('hidden',archived.length===0);
+  $('#archivedPeopleSettings').innerHTML=archived.map(i=>`<div class="archived-person"><span class="archived-label">${escapeHTML(personName(i))}</span><div class="archived-person-actions"><button class="btn secondary reactivate-person" type="button" data-person-index="${i}">Réactiver</button><button class="btn danger delete-person" type="button" data-person-index="${i}">Supprimer</button></div></div>`).join('');
+}
+
+function renderBackupStatus(){
+  const el=$('#backupStatus');
+  el.classList.remove('warning');
+  if(!data.lastBackupAt){
+    el.textContent='Aucune sauvegarde enregistrée. Une sauvegarde régulière est recommandée.';
+    el.classList.add('warning');
+    return;
+  }
+  const date=new Date(data.lastBackupAt), age=Math.max(0,Math.floor((Date.now()-date.getTime())/86400000));
+  const label=date.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+  el.textContent=age>BACKUP_REMINDER_DAYS?`Dernière sauvegarde : ${label} (${age} jours). Pensez à en créer une nouvelle.`:`Dernière sauvegarde : ${label}${age===0?' (aujourd’hui)':` · il y a ${age} jour${age>1?'s':''}`}.`;
+  if(age>BACKUP_REMINDER_DAYS) el.classList.add('warning');
+}
+
 function renderSettings(){
   $('#themeMode').value=data.settings.theme||'system';
   $('#energyType').value=data.settings.energyType||'fuel';
   for(const key of ['distance','consumption','energyPrice','toll','vehicleCostPerKm']) $(`#${key}`).value=data.settings[key];
   updateEnergyLabels();
   updateVehicleCostHelp();
-  data.people.forEach((name,i)=>{$(`#p${i}`).value=name;});
+  renderPeopleSettings();
+  renderBackupStatus();
   $('#rates').innerHTML=[1,2,3].map(n=>`<div class="summaryPerson"><span>${n} passager${n>1?'s':''}</span><b>${euro(rate(n))} / passager</b></div>`).join('');
 }
 
@@ -224,11 +313,9 @@ function selectTab(tab){
     button.classList.toggle('active',active);
     button.setAttribute('aria-selected',String(active));
   });
-  ['today','history','summary','settings'].forEach(id=>{
-    const section=$(`#${id}`);
-    section.classList.toggle('hidden',id!==tab);
-  });
+  ['today','history','summary','settings'].forEach(id=>$('#'+id).classList.toggle('hidden',id!==tab));
   if(tab==='summary') renderSummary();
+  if(tab==='settings') renderSettings();
   window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
 }
 
@@ -246,13 +333,61 @@ function saveSettings(){
 }
 
 function savePeople(){
-  data.people=[0,1,2].map(i=>cleanName($(`#p${i}`).value,`Passager ${i+1}`));
-  if(saveData()){renderPeople();renderHistory();renderSettings();renderSummary();renderPayments();flash('Prénoms enregistrés ✓');}
+  $$('[data-person-name]').forEach(input=>{
+    const i=Number(input.dataset.personName);
+    if(Number.isInteger(i)&&i>=0&&i<data.people.length) data.people[i]=cleanName(input.value,personName(i));
+  });
+  if(saveData()){renderAll();flash('Noms enregistrés ✓');}
+}
+
+function addPerson(){
+  if(data.people.length>=MAX_PEOPLE) return alert(`La limite est de ${MAX_PEOPLE} passagers enregistrés.`);
+  const input=$('#newPersonName');
+  const name=cleanName(input.value,`Passager ${data.people.length+1}`);
+  data.people.push(name);
+  if(saveData()){input.value='';renderAll();flash(`${name} ajouté ✓`);}
+}
+
+function archivePerson(index){
+  if(!Number.isInteger(index)||index<0||index>=data.people.length||isArchived(index)) return;
+  if(!confirm(`Archiver ${personName(index)} ? Son historique et ses versements seront conservés.`)) return;
+  data.archivedPeople.push(index);
+  data.archivedPeople=[...new Set(data.archivedPeople)];
+  if(saveData()){renderAll();flash(`${personName(index)} archivé ✓`);}
+}
+
+function reactivatePerson(index){
+  if(!Number.isInteger(index)||index<0||index>=data.people.length) return;
+  data.archivedPeople=data.archivedPeople.filter(i=>i!==index);
+  if(saveData()){renderAll();flash(`${personName(index)} réactivé ✓`);}
+}
+
+function deleteArchivedPerson(index){
+  if(!Number.isInteger(index)||index<0||index>=data.people.length||!isArchived(index)) return;
+  const name=personName(index);
+  const usedInTrips=data.trips.some(t=>Array.isArray(t.people)&&t.people.includes(index));
+  const usedInPayments=data.payments.some(p=>p.person===index);
+  const warning=usedInTrips||usedInPayments ? ' Son historique et ses versements associés seront définitivement supprimés.' : '';
+  if(!confirm(`Supprimer définitivement ${name} ? Cette action est irréversible.${warning}`)) return;
+  data.people.splice(index,1);
+  data.archivedPeople=data.archivedPeople
+    .filter(i=>i!==index)
+    .map(i=>i>index?i-1:i);
+  data.trips=data.trips.map(t=>({
+    ...t,
+    people:(Array.isArray(t.people)?t.people:[]).filter(i=>i!==index).map(i=>i>index?i-1:i)
+  })).filter(t=>Array.isArray(t.people)?t.people.length>0:!t.noTrip);
+  data.payments=data.payments.filter(p=>p.person!==index).map(p=>({
+    ...p,
+    person:p.person>index?p.person-1:p.person
+  }));
+  if(!data.people.length){ data.people=['Passager 1']; }
+  if(saveData()){renderAll();flash(`${name} supprimé ✓`);}
 }
 
 function addPayment(){
   const person=Number($('#payPerson').value), amount=Number($('#payAmount').value), date=safeDate($('#payDate').value||getToday());
-  if(!Number.isInteger(person)||person<0||person>2) return alert('Passager invalide.');
+  if(!Number.isInteger(person)||person<0||person>=data.people.length) return alert('Passager invalide.');
   if(!Number.isFinite(amount)||amount<=0||amount>1_000_000) return alert('Merci de saisir un montant supérieur à 0 €.');
   data.payments.push({id:makeId(),person,amount,date});
   if(saveData()){ $('#payAmount').value=''; renderSummary(); renderPayments(); flash('Versement enregistré ✓'); }
@@ -264,21 +399,27 @@ function downloadBlob(blob,filename){
   setTimeout(()=>{URL.revokeObjectURL(url);link.remove();},600);
 }
 
+function markBackup(iso){
+  data.lastBackupAt=iso;
+  saveData();
+  renderBackupStatus();
+}
+
 async function backupData(){
-  const payload={app:'Covoiturage',version:APP_VERSION,exportedAt:new Date().toISOString(),data};
+  const backupAt=new Date().toISOString();
+  const payloadData={...data,lastBackupAt:backupAt};
+  const payload={app:'Covoiturage',version:APP_VERSION,exportedAt:backupAt,data:payloadData};
   const filename=`covoiturage-sauvegarde-${getToday()}.json`;
   const content=JSON.stringify(payload,null,2);
   try{
     const file=new File([content],filename,{type:'application/json'});
     if(navigator.share&&navigator.canShare?.({files:[file]})){
       await navigator.share({files:[file],title:'Sauvegarde Covoiturage'});
-      flash('Sauvegarde prête ✓');
-      return;
+      markBackup(backupAt); flash('Sauvegarde prête ✓'); return;
     }
-  }catch(error){
-    if(error&&error.name==='AbortError') return;
-  }
+  }catch(error){ if(error&&error.name==='AbortError') return; }
   downloadBlob(new Blob([content],{type:'application/json'}),filename);
+  markBackup(backupAt);
   flash('Sauvegarde créée ✓');
 }
 
@@ -290,6 +431,7 @@ async function restoreData(file){
   if(!restored||typeof restored!=='object'||!Array.isArray(restored.trips)||!Array.isArray(restored.people)||!restored.settings) throw new Error('format');
   if(!confirm('Restaurer cette sauvegarde ? Les données actuelles de l’application seront remplacées.')) return;
   data=normalizeData(restored);
+  if(parsed&&parsed.exportedAt){ const exported=safeIsoDateTime(parsed.exportedAt); if(exported) data.lastBackupAt=exported; }
   if(saveData()){applyTheme();renderAll();flash('Sauvegarde restaurée ✓');}
 }
 
@@ -300,7 +442,7 @@ function safeCsvValue(value){
 }
 
 function exportCsv(){
-  const rows=[['Date','Passagers','Nombre','Tarif/passager','Total reçu','Coût trajet'],...data.trips.map(t=>[t.date,t.people.map(i=>data.people[i]).join(' / '),t.people.length,t.rate,t.rate*t.people.length,t.cost.toFixed(2)])];
+  const rows=[['Date','Passagers','Nombre','Tarif/passager','Total reçu','Coût trajet'],...data.trips.map(t=>[t.date,t.people.map(personName).join(' / '),t.people.length,t.rate,t.rate*t.people.length,t.cost.toFixed(2)])];
   const csv='\ufeff'+rows.map(row=>row.map(safeCsvValue).join(';')).join('\n');
   downloadBlob(new Blob([csv],{type:'text/csv;charset=utf-8'}),'covoiturage.csv');
 }
@@ -316,6 +458,18 @@ $('#energyType').addEventListener('change',updateEnergyLabels);
 $('#distance').addEventListener('input',updateVehicleCostHelp);
 $('#vehicleCostPerKm').addEventListener('input',updateVehicleCostHelp);
 $('#savePeople').addEventListener('click',savePeople);
+$('#addPerson').addEventListener('click',addPerson);
+$('#newPersonName').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();addPerson();}});
+$('#activePeopleSettings').addEventListener('click',event=>{
+  const button=event.target.closest('.archive-person'); if(!button) return;
+  archivePerson(Number(button.dataset.personIndex));
+});
+$('#archivedPeopleSettings').addEventListener('click',event=>{
+  const reactivate=event.target.closest('.reactivate-person');
+  if(reactivate){ reactivatePerson(Number(reactivate.dataset.personIndex)); return; }
+  const remove=event.target.closest('.delete-person');
+  if(remove){ deleteArchivedPerson(Number(remove.dataset.personIndex)); }
+});
 $('#addPayment').addEventListener('click',addPayment);
 $('#themeMode').addEventListener('change',event=>{data.settings.theme=event.target.value;saveData();applyTheme();flash('Apparence mise à jour ✓');});
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if((data.settings.theme||'system')==='system')applyTheme();});

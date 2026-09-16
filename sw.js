@@ -1,6 +1,6 @@
 'use strict';
-const CACHE='covoiturage-v29';
-const CORE=['./','./index.html','./styles.css?v=29','./app.js?v=29','./manifest.webmanifest?v=29','./banner.png','./icon.png?v=29','./apple-touch-icon.png?v=29','./favicon-32.png?v=29','./icon-192.png?v=29','./icon-512.png?v=29','./icon-maskable-512.png?v=29'];
+const CACHE='covoiturage-v32';
+const CORE=['./','./index.html','./styles.css?v=32','./app.js?v=32','./manifest.webmanifest?v=32','./banner.png','./icon.png?v=32','./apple-touch-icon.png?v=32','./favicon-32.png?v=32','./icon-192.png?v=32','./icon-512.png?v=32','./icon-maskable-512.png?v=32'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)).then(()=>self.skipWaiting()));

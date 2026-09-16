@@ -13,11 +13,11 @@
   <meta name="format-detection" content="telephone=no">
   <meta name="color-scheme" content="light dark">
   <title>Covoiturage</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=29">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=29">
-  <link rel="manifest" href="manifest.webmanifest?v=29">
-  <link rel="stylesheet" href="styles.css?v=29">
-  <script defer src="app.js?v=29"></script>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=32">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=32">
+  <link rel="manifest" href="manifest.webmanifest?v=32">
+  <link rel="stylesheet" href="styles.css?v=32">
+  <script defer src="app.js?v=32"></script>
 </head>
 <body>
   <div class="ambient" aria-hidden="true"></div>
@@ -29,10 +29,30 @@
 
   <main class="app-shell" id="app">
     <nav class="tabs glass-nav" aria-label="Navigation principale" role="tablist">
-      <button type="button" class="tab active" data-tab="today" role="tab" aria-selected="true" aria-controls="today">Aujourd'hui</button>
-      <button type="button" class="tab" data-tab="history" role="tab" aria-selected="false" aria-controls="history">Historique</button>
-      <button type="button" class="tab" data-tab="summary" role="tab" aria-selected="false" aria-controls="summary">Bilan</button>
-      <button type="button" class="tab" data-tab="settings" role="tab" aria-selected="false" aria-controls="settings">Réglages</button>
+      <button type="button" class="tab active" data-tab="today" role="tab" aria-selected="true" aria-controls="today">
+        <span class="tab-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false"><path d="M7 2a1 1 0 0 1 1 1v1h8V3a1 1 0 1 1 2 0v1h1a3 3 0 0 1 3 3v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a3 3 0 0 1 3-3h1V3a1 1 0 0 1 1-1Zm13 8H4v7a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-7ZM7 6H5a1 1 0 0 0-1 1v1h16V7a1 1 0 0 0-1-1h-2v1a1 1 0 1 1-2 0V6H8v1a1 1 0 1 1-2 0V6Zm5 6a1 1 0 0 1 1 1v2h2a1 1 0 1 1 0 2h-3a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1Z"/></svg>
+        </span>
+        <span class="tab-label">Aujourd’hui</span>
+      </button>
+      <button type="button" class="tab" data-tab="history" role="tab" aria-selected="false" aria-controls="history">
+        <span class="tab-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false"><path d="M12 2a10 10 0 1 1-9.95 11h2.02A8 8 0 1 0 6.34 6.34L9 9H2V2l2.93 2.93A9.97 9.97 0 0 1 12 2Zm0 5a1 1 0 0 1 1 1v3.59l2.7 2.7a1 1 0 1 1-1.4 1.42l-3-3A1 1 0 0 1 11 12V8a1 1 0 0 1 1-1Z"/></svg>
+        </span>
+        <span class="tab-label">Historique</span>
+      </button>
+      <button type="button" class="tab" data-tab="summary" role="tab" aria-selected="false" aria-controls="summary">
+        <span class="tab-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false"><path d="M5 4a1 1 0 0 1 1 1v13h13a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Zm4 7a1 1 0 0 1 1 1v4a1 1 0 1 1-2 0v-4a1 1 0 0 1 1-1Zm5-4a1 1 0 0 1 1 1v8a1 1 0 1 1-2 0V8a1 1 0 0 1 1-1Zm5-2a1 1 0 0 1 1 1v10a1 1 0 1 1-2 0V6a1 1 0 0 1 1-1Z"/></svg>
+        </span>
+        <span class="tab-label">Bilan</span>
+      </button>
+      <button type="button" class="tab" data-tab="settings" role="tab" aria-selected="false" aria-controls="settings">
+        <span class="tab-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false"><path d="M10.5 2a1 1 0 0 1 .97.76l.43 1.72a7.9 7.9 0 0 1 1.2.5l1.53-.9a1 1 0 0 1 1.22.16l1.99 1.99a1 1 0 0 1 .16 1.22l-.9 1.53c.18.39.35.79.49 1.2l1.73.43A1 1 0 0 1 21 11.5v2a1 1 0 0 1-.76.97l-1.72.43a7.9 7.9 0 0 1-.5 1.2l.9 1.53a1 1 0 0 1-.16 1.22l-1.99 1.99a1 1 0 0 1-1.22.16l-1.53-.9c-.39.18-.79.35-1.2.49l-.43 1.73A1 1 0 0 1 13.5 23h-2a1 1 0 0 1-.97-.76l-.43-1.72a7.9 7.9 0 0 1-1.2-.5l-1.53.9a1 1 0 0 1-1.22-.16l-1.99-1.99a1 1 0 0 1-.16-1.22l.9-1.53a7.9 7.9 0 0 1-.49-1.2l-1.73-.43A1 1 0 0 1 2 13.5v-2a1 1 0 0 1 .76-.97l1.72-.43c.14-.41.31-.81.5-1.2l-.9-1.53a1 1 0 0 1 .16-1.22l1.99-1.99a1 1 0 0 1 1.22-.16l1.53.9c.39-.18.79-.35 1.2-.49l.43-1.73A1 1 0 0 1 10.5 2Zm1 6a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/></svg>
+        </span>
+        <span class="tab-label">Réglages</span>
+      </button>
     </nav>
 
     <section id="today" class="view" role="tabpanel" tabindex="0">
@@ -89,6 +109,17 @@
       </article>
 
       <article class="card content-card">
+        <h2 class="date">Statistiques</h2>
+        <div class="metrics stats-metrics">
+          <div class="metric"><span>Distance parcourue</span><b id="statsKm">0 km</b></div>
+          <div class="metric"><span>Coût moyen / trajet</span><b id="statsAvgCost">0 €</b></div>
+          <div class="metric"><span>Coût conducteur / km</span><b id="statsDriverPerKm">0 €/km</b></div>
+          <div class="metric metric-compact"><span>Énergie consommée</span><b id="statsEnergy">0</b></div>
+        </div>
+        <p class="small stats-note" id="statsNote"></p>
+      </article>
+
+      <article class="card content-card">
         <h2 class="date">Versements reçus</h2>
         <div class="payGrid">
           <div class="field"><label for="payPerson">Personne</label><select id="payPerson"></select></div>
@@ -124,10 +155,17 @@
 
       <article class="card content-card">
         <h2 class="date">Passagers</h2>
-        <div class="field"><label for="p0">Passager 1</label><input id="p0" maxlength="40" autocomplete="off"></div>
-        <div class="field"><label for="p1">Passager 2</label><input id="p1" maxlength="40" autocomplete="off"></div>
-        <div class="field"><label for="p2">Passager 3</label><input id="p2" maxlength="40" autocomplete="off"></div>
-        <button class="btn primary" id="savePeople" type="button">Enregistrer les prénoms</button>
+        <p class="small">Les passagers archivés disparaissent de l’écran du trajet, mais leur historique et leurs versements sont conservés.</p>
+        <div id="activePeopleSettings" class="people-settings-list"></div>
+        <button class="btn primary" id="savePeople" type="button">Enregistrer les noms</button>
+        <div class="person-add-block">
+          <div class="field"><label for="newPersonName">Nouveau passager</label><input id="newPersonName" maxlength="40" autocomplete="off" placeholder="Prénom"></div>
+          <button class="btn secondary" id="addPerson" type="button">Ajouter un passager</button>
+        </div>
+        <div id="archivedPeopleSection" class="archived-section hidden">
+          <h3 class="subsection-title">Passagers archivés</h3>
+          <div id="archivedPeopleSettings"></div>
+        </div>
       </article>
 
       <article class="card content-card">
@@ -138,7 +176,8 @@
 
       <article class="card content-card">
         <h2 class="date">Sauvegarde des données</h2>
-        <p class="small">La sauvegarde contient les trajets, versements, prénoms et réglages. Sur iPhone, vous pouvez enregistrer le fichier dans iCloud Drive.</p>
+        <p class="small">La sauvegarde contient les trajets, versements, passagers et réglages. Sur iPhone, vous pouvez enregistrer le fichier dans iCloud Drive.</p>
+        <div id="backupStatus" class="backup-status" role="status"></div>
         <div class="actions data-actions">
           <button class="btn primary" id="backupData" type="button">Sauvegarder mes données</button>
           <div class="file-picker">
@@ -151,7 +190,7 @@
       <article class="card content-card security-card">
         <h2 class="date">Confidentialité</h2>
         <p class="small">Les trajets, versements et réglages restent sur cet appareil. L’application n’envoie pas ces données vers un serveur.</p>
-        <div class="version-badge">Version 28 · Liquid Glass</div>
+        <div class="version-badge">Version 30 · Liquid Glass</div>
       </article>
     </section>
 
