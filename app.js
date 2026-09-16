@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 33;
+const APP_VERSION = 36;
 const STORAGE_KEY = 'covoiturageData';
 const MAX_BACKUP_SIZE = 2_000_000;
 const MAX_PEOPLE = 30;
@@ -41,6 +41,12 @@ const cleanName = (value, fallback) => {
 const escapeHTML = value => String(value).replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
 const euro = n => `${Math.round(finite(n,0))} €`;
 const decimal = (n,digits=1) => finite(n,0).toLocaleString('fr-FR',{minimumFractionDigits:0,maximumFractionDigits:digits});
+
+const UI_ICONS = Object.freeze({
+  archive:'<span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><rect x="4" y="6.5" width="16" height="13" rx="2.5"/><path d="M7 3.5h10a1.5 1.5 0 0 1 1.5 1.5v1.5h-13V5A1.5 1.5 0 0 1 7 3.5ZM9 11h6"/></svg></span>',
+  restore:'<span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M5.2 8.4A8 8 0 1 1 4 13M5 4.8v4h4M12 8v4.5l2.9 1.8"/></svg></span>',
+  trash:'<span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M4.5 7h15M9 3.8h6l.8 3.2H8.2L9 3.8ZM7 7l.8 13h8.4L17 7M10 10.5v6M14 10.5v6"/></svg></span>'
+});
 
 function normalizeData(raw){
   const base=cloneDefaults();
@@ -162,7 +168,7 @@ function renderHistory(){
     const people=t.noTrip?'Aucun trajet':t.people.map(i=>`<span class="pill">${escapeHTML(personName(i))}</span>`).join('');
     const details=t.noTrip?'':`${t.people.length} passager(s) · ${euro(t.rate)} chacun · ${euro(t.rate*t.people.length)} total`;
     const label=new Date(`${t.date}T12:00:00`).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
-    return `<div class="history-item"><div class="history-head"><b>${escapeHTML(label)}</b></div><div>${people}</div><div class="small">${details}</div><div class="history-actions"><button class="btn secondary danger delete-trip" type="button" data-id="${t.id}">Supprimer</button></div></div>`;
+    return `<div class="history-item"><div class="history-head"><b>${escapeHTML(label)}</b></div><div>${people}</div><div class="small">${details}</div><div class="history-actions"><button class="btn danger compact has-icon delete-trip" type="button" data-id="${t.id}">${UI_ICONS.trash}<span class="btn-label">Supprimer</span></button></div></div>`;
   }).join(''):'<p class="small">Aucun trajet enregistré.</p>';
 }
 
@@ -194,7 +200,7 @@ function renderPayments(){
   $('#payPerson').innerHTML=data.people.map((name,i)=>`<option value="${i}">${escapeHTML(name)}${isArchived(i)?' (archivé)':''}</option>`).join('');
   if(!$('#payDate').value) $('#payDate').value=getToday();
   const payments=[...data.payments].sort((a,b)=>b.date.localeCompare(a.date));
-  $('#paymentHistory').innerHTML=payments.length?`<div class="small payment-caption">Derniers versements</div>${payments.slice(0,8).map(p=>`<div class="payment-item"><span>${escapeHTML(personName(p.person))}${isArchived(p.person)?'<span class="archive-tag">archivé</span>':''}<br><span class="small">${escapeHTML(new Date(`${p.date}T12:00:00`).toLocaleDateString('fr-FR'))}</span></span><span class="payment-value"><b>${euro(p.amount)}</b><button class="btn secondary danger icon-button delete-payment" type="button" aria-label="Supprimer ce versement" data-id="${p.id}">×</button></span></div>`).join('')}`:'<p class="small">Aucun versement enregistré.</p>';
+  $('#paymentHistory').innerHTML=payments.length?`<div class="small payment-caption">Derniers versements</div>${payments.slice(0,8).map(p=>`<div class="payment-item"><span>${escapeHTML(personName(p.person))}${isArchived(p.person)?'<span class="archive-tag">archivé</span>':''}<br><span class="small">${escapeHTML(new Date(`${p.date}T12:00:00`).toLocaleDateString('fr-FR'))}</span></span><span class="payment-value"><b>${euro(p.amount)}</b><button class="btn danger compact has-icon delete-payment" type="button" aria-label="Supprimer ce versement" data-id="${p.id}">${UI_ICONS.trash}<span class="btn-label">Supprimer</span></button></span></div>`).join('')}`:'<p class="small">Aucun versement enregistré.</p>';
 }
 
 function tripDistance(t){ return Number.isFinite(Number(t.distance)) ? Number(t.distance) : data.settings.distance; }
@@ -269,10 +275,10 @@ function updateVehicleCostHelp(){
 
 function renderPeopleSettings(){
   const active=activePeopleIndices();
-  $('#activePeopleSettings').innerHTML=active.length?active.map((i,position)=>`<div class="person-setting-row"><div class="field"><label for="personName${i}">Passager ${position+1}</label><input id="personName${i}" data-person-name="${i}" maxlength="40" autocomplete="off" value="${escapeHTML(personName(i))}"></div><button class="btn secondary archive-person" type="button" data-person-index="${i}">Archiver</button></div>`).join(''):'<p class="small">Aucun passager actif.</p>';
+  $('#activePeopleSettings').innerHTML=active.length?active.map((i,position)=>`<div class="person-setting-row"><div class="field"><label for="personName${i}">Passager ${position+1}</label><input id="personName${i}" data-person-name="${i}" maxlength="40" autocomplete="off" value="${escapeHTML(personName(i))}"></div><button class="btn secondary compact has-icon archive-person" type="button" data-person-index="${i}">${UI_ICONS.archive}<span class="btn-label">Archiver</span></button></div>`).join(''):'<p class="small">Aucun passager actif.</p>';
   const archived=data.archivedPeople.filter(i=>i>=0&&i<data.people.length);
   $('#archivedPeopleSection').classList.toggle('hidden',archived.length===0);
-  $('#archivedPeopleSettings').innerHTML=archived.map(i=>`<div class="archived-person"><span class="archived-label">${escapeHTML(personName(i))}</span><div class="archived-person-actions"><button class="btn secondary reactivate-person" type="button" data-person-index="${i}">Réactiver</button><button class="btn danger delete-person" type="button" data-person-index="${i}">Supprimer</button></div></div>`).join('');
+  $('#archivedPeopleSettings').innerHTML=archived.map(i=>`<div class="archived-person"><span class="archived-label">${escapeHTML(personName(i))}</span><div class="archived-person-actions"><button class="btn secondary compact has-icon reactivate-person" type="button" data-person-index="${i}">${UI_ICONS.restore}<span class="btn-label">Réactiver</span></button><button class="btn danger compact has-icon delete-person" type="button" data-person-index="${i}">${UI_ICONS.trash}<span class="btn-label">Supprimer</span></button></div></div>`).join('');
 }
 
 function renderBackupStatus(){

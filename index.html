@@ -13,11 +13,11 @@
   <meta name="format-detection" content="telephone=no">
   <meta name="color-scheme" content="light dark">
   <title>Covoiturage</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=33">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=33">
-  <link rel="manifest" href="manifest.webmanifest?v=33">
-  <link rel="stylesheet" href="styles.css?v=33">
-  <script defer src="app.js?v=33"></script>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=36">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=36">
+  <link rel="manifest" href="manifest.webmanifest?v=36">
+  <link rel="stylesheet" href="styles.css?v=36">
+  <script defer src="app.js?v=36"></script>
 </head>
 <body>
   <div class="ambient" aria-hidden="true"></div>
@@ -37,7 +37,7 @@
             <circle class="icon-dot" cx="12" cy="14.4" r="1.65"/>
           </svg>
         </span>
-        <span class="tab-label">Aujourd’hui</span>
+        <span class="tab-label">Trajet</span>
       </button>
       <button type="button" class="tab" data-tab="history" role="tab" aria-selected="false" aria-controls="history">
         <span class="tab-icon" aria-hidden="true">
@@ -73,7 +73,8 @@
 
     <section id="today" class="view" role="tabpanel" tabindex="0">
       <article class="card content-card">
-        <h1 class="date" id="todayDate"></h1>
+        <h1 class="date">Trajet</h1>
+        <div class="trip-date" id="todayDate"></div>
         <div class="field">
           <label for="tripDate">Date du trajet</label>
           <input id="tripDate" type="date" autocomplete="off">
@@ -89,7 +90,7 @@
           <div class="metric"><span>Coût trajet</span><b id="tripCost">0 €</b></div>
         </div>
         <div class="actions">
-          <button class="btn primary" id="save" type="button">Enregistrer le trajet</button>
+          <button class="btn primary has-icon" id="save" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m5.5 12.5 4.1 4.1 8.9-9.2"/></svg></span><span class="btn-label">Enregistrer le trajet</span></button>
         </div>
       </article>
     </section>
@@ -113,7 +114,7 @@
               <option value="all">Tout</option>
             </select>
           </div>
-          <button class="btn secondary toolbar-button" id="export" type="button">Exporter CSV</button>
+          <button class="btn secondary toolbar-button has-icon" id="export" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 3.5v10.5M8.4 10.7 12 14.3l3.6-3.6M5 17.5v1.2A2.3 2.3 0 0 0 7.3 21h9.4a2.3 2.3 0 0 0 2.3-2.3v-1.2"/></svg></span><span class="btn-label">Exporter CSV</span></button>
         </div>
         <div class="metrics summary-metrics">
           <div class="metric"><span>Trajets</span><b id="sTrips">0</b></div>
@@ -142,18 +143,12 @@
           <div class="field"><label for="payAmount">Montant (€)</label><input id="payAmount" type="number" min="0" max="1000000" step="1" inputmode="decimal" placeholder="ex. 50"></div>
         </div>
         <div class="field"><label for="payDate">Date du versement</label><input id="payDate" type="date" autocomplete="off"></div>
-        <button class="btn primary" id="addPayment" type="button">Enregistrer le versement</button>
+        <button class="btn primary has-icon" id="addPayment" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m5.5 12.5 4.1 4.1 8.9-9.2"/></svg></span><span class="btn-label">Enregistrer le versement</span></button>
         <div id="paymentHistory" class="payment-history"></div>
       </article>
     </section>
 
     <section id="settings" class="view hidden" role="tabpanel" tabindex="0">
-      <article class="card content-card">
-        <h1 class="date">Apparence</h1>
-        <div class="field"><label for="themeMode">Mode d’affichage</label><select id="themeMode"><option value="system">Automatique (système)</option><option value="light">Clair</option><option value="dark">Sombre</option></select></div>
-        <p class="small">En mode automatique, l’application suit le réglage clair ou sombre de votre appareil.</p>
-      </article>
-
       <article class="card content-card">
         <h2 class="date">Paramètres du trajet</h2>
         <div class="row">
@@ -166,22 +161,7 @@
         <div class="field"><label for="vehicleCostPerKm">Coût véhicule / km (€/km)</label><input id="vehicleCostPerKm" type="number" min="0" max="10" step="0.001" inputmode="decimal"></div>
         <p class="small energy-help" id="vehicleCostHelp">Ce coût couvre notamment l’usure, l’entretien et la décote du véhicule.</p>
         <p class="small energy-help" id="energyHelp">Le calcul utilise la consommation en L/100 km et le prix en €/L.</p>
-        <button class="btn primary" id="saveSettings" type="button">Enregistrer les réglages</button>
-      </article>
-
-      <article class="card content-card">
-        <h2 class="date">Passagers</h2>
-        <p class="small">Les passagers archivés disparaissent de l’écran du trajet, mais leur historique et leurs versements sont conservés.</p>
-        <div id="activePeopleSettings" class="people-settings-list"></div>
-        <button class="btn primary" id="savePeople" type="button">Enregistrer les noms</button>
-        <div class="person-add-block">
-          <div class="field"><label for="newPersonName">Nouveau passager</label><input id="newPersonName" maxlength="40" autocomplete="off" placeholder="Prénom"></div>
-          <button class="btn secondary" id="addPerson" type="button">Ajouter un passager</button>
-        </div>
-        <div id="archivedPeopleSection" class="archived-section hidden">
-          <h3 class="subsection-title">Passagers archivés</h3>
-          <div id="archivedPeopleSettings"></div>
-        </div>
+        <button class="btn primary has-icon" id="saveSettings" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m5.5 12.5 4.1 4.1 8.9-9.2"/></svg></span><span class="btn-label">Enregistrer les réglages</span></button>
       </article>
 
       <article class="card content-card">
@@ -191,22 +171,43 @@
       </article>
 
       <article class="card content-card">
+        <h2 class="date">Passagers</h2>
+        <p class="small">Les passagers archivés disparaissent de l’écran du trajet, mais leur historique et leurs versements sont conservés.</p>
+        <div id="activePeopleSettings" class="people-settings-list"></div>
+        <button class="btn primary has-icon" id="savePeople" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m5.5 12.5 4.1 4.1 8.9-9.2"/></svg></span><span class="btn-label">Enregistrer les noms</span></button>
+        <div class="person-add-block">
+          <div class="field"><label for="newPersonName">Nouveau passager</label><input id="newPersonName" maxlength="40" autocomplete="off" placeholder="Prénom"></div>
+          <button class="btn secondary has-icon" id="addPerson" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 5v14M5 12h14"/></svg></span><span class="btn-label">Ajouter un passager</span></button>
+        </div>
+        <div id="archivedPeopleSection" class="archived-section hidden">
+          <h3 class="subsection-title">Passagers archivés</h3>
+          <div id="archivedPeopleSettings"></div>
+        </div>
+      </article>
+
+      <article class="card content-card">
         <h2 class="date">Sauvegarde des données</h2>
         <p class="small">La sauvegarde contient les trajets, versements, passagers et réglages. Sur iPhone, vous pouvez enregistrer le fichier dans iCloud Drive.</p>
         <div id="backupStatus" class="backup-status" role="status"></div>
         <div class="actions data-actions">
-          <button class="btn primary" id="backupData" type="button">Sauvegarder mes données</button>
+          <button class="btn primary has-icon" id="backupData" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 3.5v10.5M8.4 10.7 12 14.3l3.6-3.6M5 17.5v1.2A2.3 2.3 0 0 0 7.3 21h9.4a2.3 2.3 0 0 0 2.3-2.3v-1.2"/></svg></span><span class="btn-label">Sauvegarder mes données</span></button>
           <div class="file-picker">
-            <span class="btn primary file-picker-face" aria-hidden="true">Restaurer une sauvegarde</span>
+            <span class="btn primary has-icon file-picker-face" aria-hidden="true"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 20.5V10M8.4 13.3 12 9.7l3.6 3.6M5 6.5V5.3A2.3 2.3 0 0 1 7.3 3h9.4A2.3 2.3 0 0 1 19 5.3v1.2"/></svg></span><span class="btn-label">Restaurer une sauvegarde</span></span>
             <input accept="application/json,.json" id="restoreFile" type="file" aria-label="Restaurer une sauvegarde Covoiturage">
           </div>
         </div>
       </article>
 
+      <article class="card content-card">
+        <h1 class="date">Apparence</h1>
+        <div class="field"><label for="themeMode">Mode d’affichage</label><select id="themeMode"><option value="system">Automatique (système)</option><option value="light">Clair</option><option value="dark">Sombre</option></select></div>
+        <p class="small">En mode automatique, l’application suit le réglage clair ou sombre de votre appareil.</p>
+      </article>
+
       <article class="card content-card security-card">
         <h2 class="date">Confidentialité</h2>
         <p class="small">Les trajets, versements et réglages restent sur cet appareil. L’application n’envoie pas ces données vers un serveur.</p>
-        <div class="version-badge">Version 33 · Liquid Glass</div>
+        <div class="version-badge">Version 36 · Liquid Glass</div>
       </article>
     </section>
 

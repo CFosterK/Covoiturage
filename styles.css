@@ -85,8 +85,8 @@ button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .tab:active{transform:scale(.96)}
 
 .card{margin:14px 0;padding:18px;border-radius:var(--radius);border:1px solid var(--glass-border);background:var(--content);box-shadow:var(--shadow);-webkit-backdrop-filter:blur(22px) saturate(135%);backdrop-filter:blur(22px) saturate(135%);overflow:hidden}
-.date{margin:0 0 14px;font-size:clamp(22px,5vw,31px);line-height:1.12;letter-spacing:-.035em;font-weight:760;color:var(--text)}
-h2.date{font-size:23px}
+.date{margin:0 0 14px;font-size:23px;line-height:1.12;letter-spacing:-.025em;font-weight:760;color:var(--text)}
+.trip-date{margin:-2px 0 12px;font-size:17px;line-height:1.25;font-weight:650;color:var(--muted);letter-spacing:-.01em}
 .small{font-size:13px;line-height:1.45;color:var(--muted)}
 .footer{font-size:12px;color:var(--muted);text-align:center;margin:18px 0 0;padding:0 12px}
 
@@ -196,3 +196,31 @@ html[data-theme="dark"] .tab.active .tab-icon{color:var(--accent-2)}
 .archived-person-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .archived-person .btn.danger{min-width:86px}
 @media(max-width:520px){.tab-icon{width:22px;height:22px}.tab-icon svg{width:20px;height:20px}.tab-label{font-size:11px}}
+
+
+/* V34 — ergonomie et harmonisation des actions */
+.btn.has-icon{display:inline-flex;align-items:center;justify-content:center;gap:9px}
+.btn-icon{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;flex:0 0 20px}
+.btn-icon svg{display:block;width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.btn-label{min-width:0;line-height:1.15}
+.btn.compact{width:auto;min-height:44px;padding:9px 12px;font-size:14px;border-radius:14px}
+.history-actions{display:flex;justify-content:flex-end}
+.history-actions .btn{width:auto}
+
+
+
+.person-setting-row .btn.has-icon,.archived-person-actions .btn.has-icon{white-space:nowrap}
+.file-picker-face{gap:9px}
+.data-actions .btn{min-height:52px}
+.toolbar-button.has-icon{justify-self:stretch}
+@media(max-width:520px){
+  .btn.compact{min-height:44px}
+  .history-actions .btn{width:100%}
+  .archived-person-actions{display:grid;grid-template-columns:1fr 1fr;width:100%}
+  .archived-person-actions .btn{width:100%}
+}
+@media(max-width:380px){.archived-person-actions{grid-template-columns:1fr}}
+
+.payment-value .delete-payment{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
+
+@media(max-width:520px){.date{font-size:22px}.trip-date{font-size:16px}}
