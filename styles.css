@@ -263,9 +263,9 @@ summary:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-
 @media(max-width:360px){.history-actions{grid-template-columns:1fr}}
 
 
-/* V42 — raise the banner another 10px and retain its spacing to the first card. */
-.top{margin-bottom:calc(-24px - clamp(14px,5vw,30px))}
-.app-banner{transform:translateY(-10px);pointer-events:none}
+/* V43 — raise the banner 18px and retain its spacing to the first card. */
+.top{margin-bottom:calc(-32px - clamp(14px,5vw,30px))}
+.app-banner{transform:translateY(-18px);pointer-events:none}
 .summary-entry{padding-bottom:12px;border-bottom:1px solid var(--hairline)}
 .summary-entry:last-child{border-bottom:0;padding-bottom:0}
 .summary-entry .summaryPerson{border-bottom:0;padding-bottom:10px}
@@ -274,3 +274,7 @@ summary:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-
 
 /* Passenger names stand out without enlarging amounts or the archived badge. */
 .summary-person-name{font-size:18px;font-weight:750;line-height:1.3;color:var(--text);overflow-wrap:anywhere}
+
+/* Leave the visible area free for the mobile keyboard and focused input. */
+body.keyboard-editing .glass-nav{visibility:hidden;pointer-events:none}
+body.keyboard-editing .glass-nav .tab{pointer-events:none}

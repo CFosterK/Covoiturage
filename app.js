@@ -1,13 +1,13 @@
 'use strict';
 
-const APP_VERSION = 42;
+const APP_VERSION = 43;
 const STORAGE_KEY = 'covoiturageData';
 const MAX_BACKUP_SIZE = 20_000_000;
 const MAX_PEOPLE = 30;
 const BACKUP_REMINDER_DAYS = 30;
 const DEFAULT_DATA = Object.freeze({
   settings:{distance:85,consumption:6,energyPrice:2.31,energyType:'fuel',toll:6,vehicleCostPerKm:0.10,theme:'system'},
-  people:['Passager 1','Passager 2','Passager 3'],
+  people:['Passager 1'],
   archivedPeople:[],
   lastBackupAt:null,
   trips:[],
@@ -387,7 +387,56 @@ function preparePayment(index){
   if(!Number.isInteger(index)||index<0||index>=data.people.length) return;
   $('#payPerson').value=String(index);$('#payAmount').value='';$('#payDate').value=getToday();
   $('#payAmount').focus({preventScroll:true});
-  $('#paymentForm').scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+  $('#payAmount').scrollIntoView({block:'center',behavior:'auto'});
+}
+
+function installKeyboardNavigation(){
+  const viewport=window.visualViewport;
+  const touch=matchMedia('(any-pointer: coarse)');
+  let fullHeight=Math.max(window.innerHeight,viewport?.height||0);
+  let keyboardReduced=false;
+  const editable=()=>{
+    const field=document.activeElement;
+    return field?.matches('input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="button"]):not([type="submit"]), textarea, select') && !field.readOnly && !field.disabled ? field : null;
+  };
+  function showNavigation(){
+    document.body.classList.remove('keyboard-editing');
+    keyboardReduced=false;
+  }
+  function focusChanged(){
+    if(!touch.matches || !editable()){showNavigation();return;}
+    // Hide immediately, before Safari finishes opening the keyboard.
+    fullHeight=Math.max(fullHeight,window.innerHeight,viewport?.height||0);
+    document.body.classList.add('keyboard-editing');
+  }
+  function viewportChanged(){
+    const field=editable();
+    if(!touch.matches || !field){
+      showNavigation();
+      fullHeight=Math.max(window.innerHeight,viewport?.height||0);
+      return;
+    }
+    if(!viewport || Math.abs(viewport.scale-1)>.05) return;
+    const reduced=fullHeight-viewport.height>120;
+    if(reduced){
+      keyboardReduced=true;
+      document.body.classList.add('keyboard-editing');
+      const bounds=field.getBoundingClientRect();
+      const top=viewport.offsetTop+16, bottom=viewport.offsetTop+viewport.height-16;
+      if(bounds.top<top || bounds.bottom>bottom){
+        window.scrollTo({top:Math.max(0,window.scrollY+bounds.top-top),behavior:'auto'});
+      }
+    }else if(keyboardReduced){
+      // iOS can dismiss the keyboard while leaving the input focused.
+      showNavigation();
+    }
+  }
+  document.addEventListener('focusin',focusChanged);
+  document.addEventListener('focusout',()=>setTimeout(()=>{
+    if(!editable()) showNavigation();
+  },0));
+  viewport?.addEventListener('resize',viewportChanged);
+  window.addEventListener('resize',viewportChanged);
 }
 
 function applyTheme(){
@@ -676,6 +725,7 @@ document.addEventListener('click',event=>{
   button.animate([{transform:'scale(1)'},{transform:'scale(.97)'},{transform:'scale(1)'}],{duration:180,easing:'ease-out'});
 });
 
+installKeyboardNavigation();
 applyTheme();
 renderAll();
 if(storageProblem) alert(storageProblem+' Aucune donnée originale n’a été remplacée. Consultez la rubrique Sauvegarde dans Réglages.');
