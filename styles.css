@@ -51,7 +51,7 @@ html[data-theme="dark"]{
 html{width:100%;min-height:100%;background:var(--bg);overflow-x:hidden}
 body{
   width:100%;min-height:100vh;min-height:100dvh;margin:0 auto;
-  padding:max(env(safe-area-inset-top),10px) 12px calc(128px + env(safe-area-inset-bottom));
+  padding:env(safe-area-inset-top,0px) 12px calc(128px + env(safe-area-inset-bottom));
   scroll-padding-bottom:calc(148px + env(safe-area-inset-bottom));
   max-width:780px;overflow-x:hidden;background:transparent;color:var(--text);
   -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
@@ -184,20 +184,20 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 @media(max-width:420px){.person-setting-row{grid-template-columns:1fr}.person-setting-row .btn{width:100%}.archived-person{align-items:stretch;flex-direction:column}.archived-person .btn{width:100%}}
 
 .tab-icon{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;opacity:.92;transition:transform .18s ease,color .18s ease,opacity .18s ease}
-.tab-icon svg{display:block;width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;overflow:visible}
-.tab-icon .icon-dot{fill:currentColor;stroke:none}
+.tab-icon svg{display:block;width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;overflow:visible}
+
 .tab-label{display:block;line-height:1.05;white-space:nowrap;letter-spacing:-.015em}
 .tab.active .tab-icon{color:var(--accent);opacity:1;transform:translateY(-1px) scale(1.04)}
 html[data-theme="dark"] .tab.active .tab-icon{color:var(--accent-2)}
 .archived-person-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .archived-person .btn.danger{min-width:86px}
-@media(max-width:520px){.tab-icon{width:22px;height:22px}.tab-icon svg{width:20px;height:20px}.tab-label{font-size:11px}}
+@media(max-width:520px){.tab-icon{width:24px;height:24px}.tab-icon svg{width:22px;height:22px}.tab-label{font-size:11px}}
 
 
 /* V34 — ergonomie et harmonisation des actions */
 .btn.has-icon{display:inline-flex;align-items:center;justify-content:center;gap:9px}
-.btn-icon{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;flex:0 0 20px}
-.btn-icon svg{display:block;width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.btn-icon{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;flex:0 0 22px}
+.btn-icon svg{display:block;width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .btn-label{min-width:0;line-height:1.15}
 .btn.compact{width:auto;min-height:44px;padding:9px 12px;font-size:14px;border-radius:14px}
 .history-actions{display:flex;justify-content:flex-end}
@@ -247,8 +247,9 @@ html[data-theme="dark"] .tab.active .tab-icon{color:var(--accent-2)}
 .history-item{padding:0}
 .history-item>summary{display:flex;align-items:flex-start;gap:12px;cursor:pointer;padding:16px 0;list-style:none;min-height:56px}
 .history-item>summary::-webkit-details-marker{display:none}
-.history-item>summary::after{content:"";width:8px;height:8px;border-right:1.8px solid currentColor;border-bottom:1.8px solid currentColor;transform:rotate(45deg);flex:0 0 8px;margin:5px 4px 0 0;color:var(--muted)}
-.history-item[open]>summary::after{transform:rotate(225deg);margin-top:10px}
+.history-chevron{display:flex;flex:0 0 22px;color:var(--muted)}
+.history-chevron svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.history-item[open] .history-chevron{transform:rotate(180deg)}
 .history-overview{display:grid;gap:6px;min-width:0;flex:1;overflow-wrap:anywhere}
 .history-overview b{font-size:15px;line-height:1.4}
 .history-names{font-size:14px;line-height:1.4}
@@ -262,9 +263,9 @@ summary:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-
 @media(max-width:360px){.history-actions{grid-template-columns:1fr}}
 
 
-/* V40 — V38 presentation, banner closer to the first card. */
-.top{margin-bottom:-14px}
-.app-banner{transform:translateY(clamp(14px,5vw,30px));pointer-events:none}
+/* V41 — header raised; keep the banner close to the first card. */
+.top{margin-bottom:calc(-14px - clamp(14px,5vw,30px))}
+.app-banner{pointer-events:none}
 .summary-entry{padding-bottom:12px;border-bottom:1px solid var(--hairline)}
 .summary-entry:last-child{border-bottom:0;padding-bottom:0}
 .summary-entry .summaryPerson{border-bottom:0;padding-bottom:10px}

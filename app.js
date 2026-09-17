@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 40;
+const APP_VERSION = 41;
 const STORAGE_KEY = 'covoiturageData';
 const MAX_BACKUP_SIZE = 20_000_000;
 const MAX_PEOPLE = 30;
@@ -53,11 +53,11 @@ const euro = n => `${Math.round(finite(n,0))} €`;
 const decimal = (n,digits=1) => finite(n,0).toLocaleString('fr-FR',{minimumFractionDigits:0,maximumFractionDigits:digits});
 
 const UI_ICONS = Object.freeze({
-  edit:'<span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m15 5 4 4M4 20l4.5-1 12-12a2.8 2.8 0 0 0-4-4l-12 12L4 20Z"/></svg></span>',
+  edit:'<span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m16 3 5 5M21 8 8 21H3v-5L16 3a3.54 3.54 0 0 1 5 5Z"/></svg></span>',
   payment:'<span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 5v14M5 12h14"/></svg></span>',
-  archive:'<span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><rect x="4" y="6.5" width="16" height="13" rx="2.5"/><path d="M7 3.5h10a1.5 1.5 0 0 1 1.5 1.5v1.5h-13V5A1.5 1.5 0 0 1 7 3.5ZM9 11h6"/></svg></span>',
-  restore:'<span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M5.2 8.4A8 8 0 1 1 4 13M5 4.8v4h4M12 8v4.5l2.9 1.8"/></svg></span>',
-  trash:'<span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M4.5 7h15M9 3.8h6l.8 3.2H8.2L9 3.8ZM7 7l.8 13h8.4L17 7M10 10.5v6M14 10.5v6"/></svg></span>'
+  archive:'<span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><rect x="3" y="3" width="18" height="4" rx="1"/><path d="M5 7v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7M10 12h4"/></svg></span>',
+  restore:'<span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8M3 3v5h5M12 7v5l4 2"/></svg></span>',
+  trash:'<span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M3 6h18M19 6v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M10 10v7M14 10v7"/></svg></span>'
 });
 
 function normalizeData(raw){
@@ -322,7 +322,7 @@ function renderHistory(){
         t.distance===null?null:`Distance : ${decimal(t.distance)} km`,
         t.energyUsed===null||!t.energyType?null:`Énergie : ${decimal(t.energyUsed,2)} ${energy}`
       ].filter(Boolean).map(escapeHTML).join('<br>');
-      return `<details class="history-item" data-id="${t.id}"${expanded.has(t.id)?' open':''}><summary><span class="history-overview"><b>${escapeHTML(dateLabel)}</b><span class="history-names">${escapeHTML(names)}</span>${t.noTrip?'':`<span class="small">Participation prévue : <strong>${euro(t.rate*t.people.length)}</strong></span>`}</span></summary><div class="history-detail"><p class="small">${snapshot}</p><div class="history-actions"><button class="btn secondary compact has-icon edit-trip" type="button" data-id="${t.id}">${UI_ICONS.edit}<span class="btn-label">${t.noTrip?'Modifier la date':'Modifier'}</span></button><button class="btn danger compact has-icon delete-trip" type="button" data-id="${t.id}">${UI_ICONS.trash}<span class="btn-label">Supprimer</span></button></div></div></details>`;
+      return `<details class="history-item" data-id="${t.id}"${expanded.has(t.id)?' open':''}><summary><span class="history-overview"><b>${escapeHTML(dateLabel)}</b><span class="history-names">${escapeHTML(names)}</span>${t.noTrip?'':`<span class="small">Participation prévue : <strong>${euro(t.rate*t.people.length)}</strong></span>`}</span><span class="history-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m6 9 6 6 6-6"/></svg></span></summary><div class="history-detail"><p class="small">${snapshot}</p><div class="history-actions"><button class="btn secondary compact has-icon edit-trip" type="button" data-id="${t.id}">${UI_ICONS.edit}<span class="btn-label">${t.noTrip?'Modifier la date':'Modifier'}</span></button><button class="btn danger compact has-icon delete-trip" type="button" data-id="${t.id}">${UI_ICONS.trash}<span class="btn-label">Supprimer</span></button></div></div></details>`;
     }).join('')}</section>`;
   }).join(''):`<p class="small">${data.trips.length?'Aucun trajet pour ce passager.':'Aucun trajet enregistré.'}</p>`;
 }
