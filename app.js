@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 38;
+const APP_VERSION = 40;
 const STORAGE_KEY = 'covoiturageData';
 const MAX_BACKUP_SIZE = 20_000_000;
 const MAX_PEOPLE = 30;
@@ -53,6 +53,8 @@ const euro = n => `${Math.round(finite(n,0))} €`;
 const decimal = (n,digits=1) => finite(n,0).toLocaleString('fr-FR',{minimumFractionDigits:0,maximumFractionDigits:digits});
 
 const UI_ICONS = Object.freeze({
+  edit:'<span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m15 5 4 4M4 20l4.5-1 12-12a2.8 2.8 0 0 0-4-4l-12 12L4 20Z"/></svg></span>',
+  payment:'<span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 5v14M5 12h14"/></svg></span>',
   archive:'<span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><rect x="4" y="6.5" width="16" height="13" rx="2.5"/><path d="M7 3.5h10a1.5 1.5 0 0 1 1.5 1.5v1.5h-13V5A1.5 1.5 0 0 1 7 3.5ZM9 11h6"/></svg></span>',
   restore:'<span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M5.2 8.4A8 8 0 1 1 4 13M5 4.8v4h4M12 8v4.5l2.9 1.8"/></svg></span>',
   trash:'<span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M4.5 7h15M9 3.8h6l.8 3.2H8.2L9 3.8ZM7 7l.8 13h8.4L17 7M10 10.5v6M14 10.5v6"/></svg></span>'
@@ -199,10 +201,16 @@ const vehicleCostPerTrip = () => data.settings.distance*data.settings.vehicleCos
 const tripCost = () => data.settings.distance*data.settings.consumption/100*data.settings.energyPrice+data.settings.toll+vehicleCostPerTrip();
 const rate = n => n ? Math.round(tripCost()/(n+1)) : 0;
 
-function renderPeople(){
-  const active=activePeopleIndices();
+// Editing is temporary UI state; stored records keep the V37/V38 format.
+let editingTripId=null, newTripDraft=null;
+const editingTrip=()=>data.trips.find(t=>t.id===editingTripId);
+const selectedPassengers=()=>$$('[data-person]:checked').map(el=>Number(el.dataset.person));
+
+function renderPeople(selected=[]){
+  const original=editingTrip();
+  const active=[...new Set([...activePeopleIndices(),...(original?.people||[])])];
   $('#people').innerHTML=active.length
-    ? active.map(i=>`<label class="person"><input type="checkbox" data-person="${i}"><span>${escapeHTML(personName(i))}</span></label>`).join('')
+    ? active.map(i=>`<label class="person"><input type="checkbox" data-person="${i}"${selected.includes(i)?' checked':''}${original?.noTrip?' disabled':''}><span>${escapeHTML(personName(i))}${isArchived(i)?'<small class="archive-tag">archivé</small>':''}</span></label>`).join('')
     : '<p class="small">Aucun passager actif. Vous pouvez en ajouter ou en réactiver dans Réglages.</p>';
   $$('[data-person]').forEach(el=>el.addEventListener('change',event=>{
     if(event.target.checked && $$('[data-person]:checked').length>3){
@@ -214,17 +222,77 @@ function renderPeople(){
   calcToday();
 }
 
+function shouldRecalculateTrip(original){
+  if(!original || original.noTrip) return false;
+  const people=selectedPassengers();
+  return $('#tripDate').value!==original.date || people.length!==original.people.length || people.some(i=>!original.people.includes(i));
+}
+
 function calcToday(){
-  const n=$$('[data-person]:checked').length;
+  const n=selectedPassengers().length, original=editingTrip();
+  const preserve=original && !shouldRecalculateTrip(original);
+  const perPerson=preserve?original.rate:rate(n), cost=preserve?original.cost:tripCost();
   $('#count').textContent=n;
-  $('#perPerson').textContent=euro(rate(n));
-  $('#received').textContent=euro(rate(n)*n);
-  $('#tripCost').textContent=euro(tripCost());
+  $('#perPerson').textContent=euro(perPerson);
+  $('#received').textContent=euro(original?.noTrip?0:perPerson*n);
+  $('#tripCost').textContent=euro(cost);
+}
+
+function renderTripMode(){
+  const original=editingTrip();
+  $('#tripTitle').textContent=original?'Modifier le trajet':'Trajet';
+  $('#saveTripLabel').textContent=original?'Enregistrer les modifications':'Enregistrer le trajet';
+  $('#cancelEdit').classList.toggle('hidden',!original);
+  $('#editNotice').classList.toggle('hidden',!original);
+  if(original) $('#editNotice').textContent=original.noTrip
+    ? 'Ancien enregistrement « Aucun trajet » : seule la date sera modifiée.'
+    : 'Si vous changez la date ou les passagers, ce trajet sera recalculé avec les réglages actuels. Les autres trajets restent inchangés.';
+}
+
+function startEditTrip(id){
+  const original=data.trips.find(t=>t.id===id);
+  if(!original) return;
+  newTripDraft={date:$('#tripDate').value,people:selectedPassengers()};
+  editingTripId=id;
+  $('#tripDate').value=original.date;
+  renderTripMode();renderPeople(original.people);selectTab('today');
+}
+
+function finishEditing(){
+  const draft=newTripDraft;
+  editingTripId=null;newTripDraft=null;
+  $('#tripDate').value=draft?.date||getToday();
+  renderTripMode();renderPeople((draft?.people||[]).filter(i=>!isArchived(i)));
+}
+
+function saveEditedTrip(){
+  const index=data.trips.findIndex(t=>t.id===editingTripId), original=data.trips[index];
+  if(!original){alert('Ce trajet n’existe plus.');finishEditing();renderHistory();return;}
+  const date=safeDate($('#tripDate').value,null);
+  if(!date){alert('Choisissez une date valide.');$('#tripDate').focus();return;}
+  const people=original.noTrip?original.people:selectedPassengers();
+  const samePeople=people.length===original.people.length && people.every(i=>original.people.includes(i));
+  if(people.length>3 && !samePeople){alert('Maximum 3 passagers par trajet.');return;}
+  const updated={...original,date,people};
+  if(shouldRecalculateTrip(original)){
+    const {distance,consumption,energyType,energyPrice,vehicleCostPerKm,toll}=data.settings;
+    Object.assign(updated,{rate:rate(people.length),cost:tripCost(),distance,consumption,energyType,energyPrice,energyUsed:distance*consumption/100,vehicleCostPerKm,toll});
+  }
+  data.trips[index]=updated;
+  if(saveData()){
+    const draft=newTripDraft;
+    finishEditing();renderAll();
+    renderPeople((draft?.people||[]).filter(i=>!isArchived(i)));
+    selectTab('history');flash('Trajet modifié ✓');
+  }
 }
 
 function addTrip(){
-  const people=$$('[data-person]:checked').map(el=>Number(el.dataset.person));
-  const selectedDate=safeDate($('#tripDate').value||getToday());
+  if(editingTripId){saveEditedTrip();return;}
+  const people=selectedPassengers();
+  if(people.length>3){alert('Maximum 3 passagers par trajet.');return;}
+  const selectedDate=safeDate($('#tripDate').value,null);
+  if(!selectedDate){alert('Choisissez une date valide.');$('#tripDate').focus();return;}
   const distance=data.settings.distance, consumption=data.settings.consumption;
   data.trips.push({
     id:makeId(),date:selectedDate,people,noTrip:false,rate:rate(people.length),cost:tripCost(),createdAt:new Date().toISOString(),
@@ -235,13 +303,28 @@ function addTrip(){
 }
 
 function renderHistory(){
-  const trips=[...data.trips].sort((a,b)=>b.date.localeCompare(a.date));
-  $('#historyList').innerHTML=trips.length?trips.map(t=>{
-    const people=t.noTrip?'Aucun trajet':t.people.map(i=>`<span class="pill">${escapeHTML(personName(i))}</span>`).join('');
-    const details=t.noTrip?'':`${t.people.length} passager(s) · ${euro(t.rate)} chacun · ${euro(t.rate*t.people.length)} total`;
-    const label=new Date(`${t.date}T12:00:00`).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
-    return `<div class="history-item"><div class="history-head"><b>${escapeHTML(label)}</b></div><div>${people}</div><div class="small">${details}</div><div class="history-actions"><button class="btn danger compact has-icon delete-trip" type="button" data-id="${t.id}">${UI_ICONS.trash}<span class="btn-label">Supprimer</span></button></div></div>`;
-  }).join(''):'<p class="small">Aucun trajet enregistré.</p>';
+  const select=$('#historyPerson'), previous=select.value||'all';
+  select.innerHTML='<option value="all">Tous les passagers</option>'+data.people.map((name,i)=>`<option value="${i}">${escapeHTML(name)}${isArchived(i)?' (archivé)':''}</option>`).join('');
+  select.value=previous==='all'||data.people[Number(previous)]!==undefined?previous:'all';
+  const expanded=new Set($$('#historyList details[open]').map(el=>el.dataset.id));
+  const trips=[...data.trips].filter(t=>select.value==='all'||t.people.includes(Number(select.value))).sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt.localeCompare(a.createdAt));
+  const groups=new Map();
+  trips.forEach(t=>{const month=t.date.slice(0,7);if(!groups.has(month))groups.set(month,[]);groups.get(month).push(t);});
+  $('#historyList').innerHTML=trips.length?[...groups].map(([month,items])=>{
+    const monthLabel=new Date(`${month}-01T12:00:00`).toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+    return `<section class="history-month"><h2 class="month-title">${escapeHTML(monthLabel)}</h2>${items.map(t=>{
+      const names=t.noTrip?'Aucun trajet':t.people.length?t.people.map(personName).join(', '):'Sans passager';
+      const dateLabel=new Date(`${t.date}T12:00:00`).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+      const energy=t.energyType==='electric'?'kWh':'L';
+      const snapshot=t.noTrip?'Ancien enregistrement sans trajet.':[
+        `${t.people.length} passager(s) · ${euro(t.rate)} par passager`,
+        `Coût enregistré : ${euro(t.cost)}`,
+        t.distance===null?null:`Distance : ${decimal(t.distance)} km`,
+        t.energyUsed===null||!t.energyType?null:`Énergie : ${decimal(t.energyUsed,2)} ${energy}`
+      ].filter(Boolean).map(escapeHTML).join('<br>');
+      return `<details class="history-item" data-id="${t.id}"${expanded.has(t.id)?' open':''}><summary><span class="history-overview"><b>${escapeHTML(dateLabel)}</b><span class="history-names">${escapeHTML(names)}</span>${t.noTrip?'':`<span class="small">Participation prévue : <strong>${euro(t.rate*t.people.length)}</strong></span>`}</span></summary><div class="history-detail"><p class="small">${snapshot}</p><div class="history-actions"><button class="btn secondary compact has-icon edit-trip" type="button" data-id="${t.id}">${UI_ICONS.edit}<span class="btn-label">${t.noTrip?'Modifier la date':'Modifier'}</span></button><button class="btn danger compact has-icon delete-trip" type="button" data-id="${t.id}">${UI_ICONS.trash}<span class="btn-label">Supprimer</span></button></div></div></details>`;
+    }).join('')}</section>`;
+  }).join(''):`<p class="small">${data.trips.length?'Aucun trajet pour ce passager.':'Aucun trajet enregistré.'}</p>`;
 }
 
 function filteredTrips(){
@@ -296,8 +379,15 @@ function renderSummary(){
     const balance=due-paid;
     const state=balance>0?`${euro(balance)} à payer`:balance<0?`Crédit ${euro(Math.abs(balance))}`:'Soldé ✓';
     const cls=balance>0?'balance-positive':balance<0?'balance-credit':'balance-zero';
-    return `<div class="summaryPerson"><span>${escapeHTML(personName(i))}${isArchived(i)?'<span class="archive-tag">archivé</span>':''}<br><span class="small">${personTrips.length} trajet(s) · dû ${euro(due)} · versé ${euro(paid)}</span></span><span class="${cls}">${state}</span></div>`;
+    return `<div class="summary-entry"><div class="summaryPerson"><span>${escapeHTML(personName(i))}${isArchived(i)?'<span class="archive-tag">archivé</span>':''}<br><span class="small">${personTrips.length} trajet(s) · dû ${euro(due)} · versé ${euro(paid)}</span></span><span class="${cls}">${state}</span></div><button class="btn secondary compact has-icon quick-payment" type="button" data-person-index="${i}" aria-label="Enregistrer un versement pour ${escapeHTML(personName(i))}">${UI_ICONS.payment}<span class="btn-label">Enregistrer un versement</span></button></div>`;
   }).join('');
+}
+
+function preparePayment(index){
+  if(!Number.isInteger(index)||index<0||index>=data.people.length) return;
+  $('#payPerson').value=String(index);$('#payAmount').value='';$('#payDate').value=getToday();
+  $('#payAmount').focus({preventScroll:true});
+  $('#paymentForm').scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
 }
 
 function applyTheme(){
@@ -327,6 +417,7 @@ function renderPeopleSettings(){
   $('#activePeopleSettings').innerHTML=active.length?active.map((i,position)=>`<div class="person-setting-row"><div class="field"><label for="personName${i}">Passager ${position+1}</label><input id="personName${i}" data-person-name="${i}" maxlength="40" autocomplete="off" value="${escapeHTML(personName(i))}"></div><button class="btn secondary compact has-icon archive-person" type="button" data-person-index="${i}">${UI_ICONS.archive}<span class="btn-label">Archiver</span></button></div>`).join(''):'<p class="small">Aucun passager actif.</p>';
   const archived=data.archivedPeople.filter(i=>i>=0&&i<data.people.length);
   $('#archivedPeopleSection').classList.toggle('hidden',archived.length===0);
+  $('#archivedCount').textContent=`(${archived.length})`;
   $('#archivedPeopleSettings').innerHTML=archived.map(i=>`<div class="archived-person"><span class="archived-label">${escapeHTML(personName(i))}</span><div class="archived-person-actions"><button class="btn secondary compact has-icon reactivate-person" type="button" data-person-index="${i}">${UI_ICONS.restore}<span class="btn-label">Réactiver</span></button><button class="btn danger compact has-icon delete-person" type="button" data-person-index="${i}">${UI_ICONS.trash}<span class="btn-label">Supprimer</span></button></div></div>`).join('');
 }
 
@@ -362,10 +453,17 @@ function renderSettings(){
 
 function renderAll(){
   if(!$('#tripDate').value) $('#tripDate').value=getToday();
-  renderPeople(); renderHistory(); renderSettings(); renderSummary(); renderPayments();
+  const original=editingTrip();
+  if(original) $('#tripDate').value=original.date;
+  renderTripMode();renderPeople(original?.people||[]);renderHistory();renderSettings();renderSummary();renderPayments();
 }
 
 function selectTab(tab){
+  if(tab!=='today' && editingTripId){
+    if(!confirm('Quitter la modification sans enregistrer ?')) return;
+    finishEditing();
+  }
+  document.body.dataset.view=tab;
   $$('.tab').forEach(button=>{
     const active=button.dataset.tab===tab;
     button.classList.toggle('active',active);
@@ -519,6 +617,13 @@ function exportCsv(){
 
 $$('.tab').forEach(button=>button.addEventListener('click',()=>selectTab(button.dataset.tab)));
 $('#save').addEventListener('click',addTrip);
+$('#tripDate').addEventListener('input',calcToday);
+$('#tripDate').addEventListener('change',calcToday);
+$('#cancelEdit').addEventListener('click',()=>{finishEditing();selectTab('history');});
+$('#historyPerson').addEventListener('change',renderHistory);
+$('#personSummary').addEventListener('click',event=>{
+  const button=event.target.closest('.quick-payment');if(button)preparePayment(Number(button.dataset.personIndex));
+});
 $('#saveSettings').addEventListener('click',saveSettings);
 $('#energyType').addEventListener('change',updateEnergyLabels);
 $('#distance').addEventListener('input',updateVehicleCostHelp);
@@ -550,6 +655,7 @@ $('#restoreFile').addEventListener('change',async event=>{
 $('#export').addEventListener('click',exportCsv);
 
 $('#historyList').addEventListener('click',event=>{
+  const edit=event.target.closest('.edit-trip');if(edit){startEditTrip(edit.dataset.id);return;}
   const button=event.target.closest('.delete-trip'); if(!button) return;
   const id=button.dataset.id;
   if(confirm('Supprimer ce trajet ?')){data.trips=data.trips.filter(t=>t.id!==id);if(saveData()) renderAll();}

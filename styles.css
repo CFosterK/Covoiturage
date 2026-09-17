@@ -5,7 +5,7 @@
   --bg-deep:#dbe5f1;
   --text:#10151d;
   --muted:#5d6673;
-  --content:rgba(249,251,255,.76);
+  --content:rgba(249,251,255,.94);
   --content-strong:rgba(252,253,255,.9);
   --glass:rgba(255,255,255,.52);
   --glass-strong:rgba(255,255,255,.72);
@@ -30,7 +30,7 @@ html[data-theme="dark"]{
   --bg-deep:#111922;
   --text:#f6f8fb;
   --muted:#a9b1bd;
-  --content:rgba(24,29,37,.76);
+  --content:rgba(24,29,37,.94);
   --content-strong:rgba(25,31,40,.9);
   --glass:rgba(31,40,51,.56);
   --glass-strong:rgba(39,50,65,.74);
@@ -236,3 +236,37 @@ html[data-theme="dark"] .tab.active .tab-icon{color:var(--accent-2)}
   .payment-item{align-items:flex-start;flex-direction:column}
   .payment-value{width:100%;justify-content:space-between}
 }
+
+
+/* Trip editor, history and grouped settings. */
+.btn:disabled{opacity:.5;cursor:default}
+.edit-notice{padding:12px;border-radius:14px;background:var(--accent-soft);font-size:14px;line-height:1.45}
+.quick-payment{width:100%!important}
+#paymentForm{scroll-margin-top:14px}
+.month-title{font-size:16px;color:var(--muted);text-transform:capitalize;margin:22px 0 6px}
+.history-item{padding:0}
+.history-item>summary{display:flex;align-items:flex-start;gap:12px;cursor:pointer;padding:16px 0;list-style:none;min-height:56px}
+.history-item>summary::-webkit-details-marker{display:none}
+.history-item>summary::after{content:"";width:8px;height:8px;border-right:1.8px solid currentColor;border-bottom:1.8px solid currentColor;transform:rotate(45deg);flex:0 0 8px;margin:5px 4px 0 0;color:var(--muted)}
+.history-item[open]>summary::after{transform:rotate(225deg);margin-top:10px}
+.history-overview{display:grid;gap:6px;min-width:0;flex:1;overflow-wrap:anywhere}
+.history-overview b{font-size:15px;line-height:1.4}
+.history-names{font-size:14px;line-height:1.4}
+.history-detail{padding:0 0 16px}
+.history-detail p{margin:0}
+.history-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.history-actions .btn{width:100%}
+summary:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:8px}
+.tariff-section,.privacy-note{margin-top:18px;padding-top:10px;border-top:1px solid var(--hairline)}
+.archived-section>summary{padding:14px 0;min-height:48px;font-size:15px;font-weight:700;cursor:pointer;overflow-wrap:anywhere}
+@media(max-width:360px){.history-actions{grid-template-columns:1fr}}
+
+
+/* V40 — V38 presentation, banner closer to the first card. */
+.top{margin-bottom:-14px}
+.app-banner{transform:translateY(clamp(14px,5vw,30px));pointer-events:none}
+.summary-entry{padding-bottom:12px;border-bottom:1px solid var(--hairline)}
+.summary-entry:last-child{border-bottom:0;padding-bottom:0}
+.summary-entry .summaryPerson{border-bottom:0;padding-bottom:10px}
+.summary-entry .quick-payment{margin-bottom:2px}
+#paymentsHistoryCard .payment-history{margin-top:0}

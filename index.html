@@ -13,13 +13,13 @@
   <meta name="format-detection" content="telephone=no">
   <meta name="color-scheme" content="light dark">
   <title>Covoiturage</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=38">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=38">
-  <link rel="manifest" href="manifest.webmanifest?v=38">
-  <link rel="stylesheet" href="styles.css?v=38">
-  <script defer src="app.js?v=38"></script>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=40">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=40">
+  <link rel="manifest" href="manifest.webmanifest?v=40">
+  <link rel="stylesheet" href="styles.css?v=40">
+  <script defer src="app.js?v=40"></script>
 </head>
-<body>
+<body data-view="today">
   <div class="ambient" aria-hidden="true"></div>
 
   <header class="top">
@@ -73,7 +73,8 @@
 
     <section id="today" class="view" role="tabpanel" tabindex="0">
       <article class="card content-card">
-        <h1 class="date">Trajet</h1>
+        <h1 class="date" id="tripTitle">Trajet</h1>
+        <p id="editNotice" class="edit-notice hidden" role="status"></p>
         <div class="field">
           <label for="tripDate">Date du trajet</label>
           <input id="tripDate" type="date" autocomplete="off">
@@ -89,7 +90,8 @@
           <div class="metric"><span>Coût trajet</span><b id="tripCost">0 €</b></div>
         </div>
         <div class="actions">
-          <button class="btn primary has-icon" id="save" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m5.5 12.5 4.1 4.1 8.9-9.2"/></svg></span><span class="btn-label">Enregistrer le trajet</span></button>
+          <button class="btn primary has-icon" id="save" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m5.5 12.5 4.1 4.1 8.9-9.2"/></svg></span><span class="btn-label" id="saveTripLabel">Enregistrer le trajet</span></button>
+          <button class="btn secondary hidden" id="cancelEdit" type="button">Annuler la modification</button>
         </div>
       </article>
     </section>
@@ -97,6 +99,7 @@
     <section id="history" class="view hidden" role="tabpanel" tabindex="0">
       <article class="card content-card">
         <h1 class="date">Historique</h1>
+        <div class="field"><label for="historyPerson">Passager</label><select id="historyPerson"><option value="all">Tous les passagers</option></select></div>
         <div id="historyList"></div>
       </article>
     </section>
@@ -125,21 +128,25 @@
         <div id="personSummary" class="summary-list"></div>
       </article>
 
-      <article class="card content-card">
-        <h2 class="date">Versements reçus</h2>
+      <article class="card content-card" id="paymentForm">
+        <h2 class="date">Enregistrer un versement</h2>
         <div class="payGrid">
           <div class="field"><label for="payPerson">Personne</label><select id="payPerson"></select></div>
           <div class="field"><label for="payAmount">Montant (€)</label><input id="payAmount" type="number" min="0" max="1000000" step="1" inputmode="decimal" placeholder="ex. 50"></div>
         </div>
         <div class="field"><label for="payDate">Date du versement</label><input id="payDate" type="date" autocomplete="off"></div>
         <button class="btn primary has-icon" id="addPayment" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m5.5 12.5 4.1 4.1 8.9-9.2"/></svg></span><span class="btn-label">Enregistrer le versement</span></button>
+      </article>
+
+      <article class="card content-card" id="paymentsHistoryCard">
+        <h2 class="date">Historique des versements</h2>
         <div id="paymentHistory" class="payment-history"></div>
       </article>
     </section>
 
     <section id="settings" class="view hidden" role="tabpanel" tabindex="0">
       <article class="card content-card">
-        <h2 class="date">Paramètres du trajet</h2>
+        <h2 class="date">Trajet et tarifs</h2>
         <div class="row">
           <div class="field"><label for="distance">Distance A/R (km)</label><input id="distance" type="number" min="0" max="2000" step="1" inputmode="decimal"></div>
           <div class="field"><label for="energyType">Type d’énergie</label><select id="energyType"><option value="fuel">Carburant</option><option value="electric">Électricité</option></select></div>
@@ -151,12 +158,11 @@
         <p class="small energy-help" id="vehicleCostHelp">Ce coût couvre notamment l’usure, l’entretien et la décote du véhicule.</p>
         <p class="small energy-help" id="energyHelp">Le calcul utilise la consommation en L/100 km et le prix en €/L.</p>
         <button class="btn primary has-icon" id="saveSettings" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m5.5 12.5 4.1 4.1 8.9-9.2"/></svg></span><span class="btn-label">Enregistrer les réglages</span></button>
-      </article>
-
-      <article class="card content-card">
-        <h2 class="date">Tarifs calculés</h2>
-        <div id="rates"></div>
-        <p class="small">La participation est le coût estimé du trajet réparti entre toutes les personnes à bord, conducteur compris, puis arrondie à l'euro.</p>
+        <div class="tariff-section">
+          <h3 class="subsection-title">Tarifs enregistrés</h3>
+          <div id="rates"></div>
+          <p class="small">Coût réparti entre les passagers et le conducteur, puis arrondi à l’euro par passager.</p>
+        </div>
       </article>
 
       <article class="card content-card">
@@ -168,10 +174,10 @@
           <div class="field"><label for="newPersonName">Nouveau passager</label><input id="newPersonName" maxlength="40" autocomplete="off" placeholder="Prénom"></div>
           <button class="btn secondary has-icon" id="addPerson" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 5v14M5 12h14"/></svg></span><span class="btn-label">Ajouter un passager</span></button>
         </div>
-        <div id="archivedPeopleSection" class="archived-section hidden">
-          <h3 class="subsection-title">Passagers archivés</h3>
+        <details id="archivedPeopleSection" class="archived-section hidden">
+          <summary>Passagers archivés <span id="archivedCount"></span></summary>
           <div id="archivedPeopleSettings"></div>
-        </div>
+        </details>
       </article>
 
       <article class="card content-card">
@@ -188,15 +194,14 @@
       </article>
 
       <article class="card content-card">
-        <h1 class="date">Apparence</h1>
+        <h2 class="date">Apparence</h2>
         <div class="field"><label for="themeMode">Mode d’affichage</label><select id="themeMode"><option value="system">Automatique (système)</option><option value="light">Clair</option><option value="dark">Sombre</option></select></div>
         <p class="small">En mode automatique, l’application suit le réglage clair ou sombre de votre appareil.</p>
-      </article>
-
-      <article class="card content-card security-card">
-        <h2 class="date">Confidentialité</h2>
+        <div class="privacy-note">
+        <h3 class="subsection-title">Confidentialité</h3>
         <p class="small">Les trajets, versements et réglages restent sur cet appareil. L’application n’envoie pas ces données vers un serveur.</p>
-        <div class="version-badge">Version 38 · Liquid Glass</div>
+        <div class="version-badge">Version 40 · Liquid Glass</div>
+        </div>
       </article>
     </section>
 
