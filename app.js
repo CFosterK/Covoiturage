@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 41;
+const APP_VERSION = 42;
 const STORAGE_KEY = 'covoiturageData';
 const MAX_BACKUP_SIZE = 20_000_000;
 const MAX_PEOPLE = 30;
@@ -379,7 +379,7 @@ function renderSummary(){
     const balance=due-paid;
     const state=balance>0?`${euro(balance)} à payer`:balance<0?`Crédit ${euro(Math.abs(balance))}`:'Soldé ✓';
     const cls=balance>0?'balance-positive':balance<0?'balance-credit':'balance-zero';
-    return `<div class="summary-entry"><div class="summaryPerson"><span>${escapeHTML(personName(i))}${isArchived(i)?'<span class="archive-tag">archivé</span>':''}<br><span class="small">${personTrips.length} trajet(s) · dû ${euro(due)} · versé ${euro(paid)}</span></span><span class="${cls}">${state}</span></div><button class="btn secondary compact has-icon quick-payment" type="button" data-person-index="${i}" aria-label="Enregistrer un versement pour ${escapeHTML(personName(i))}">${UI_ICONS.payment}<span class="btn-label">Enregistrer un versement</span></button></div>`;
+    return `<div class="summary-entry"><div class="summaryPerson"><span><strong class="summary-person-name">${escapeHTML(personName(i))}</strong>${isArchived(i)?'<span class="archive-tag">archivé</span>':''}<br><span class="small">${personTrips.length} trajet(s) · dû ${euro(due)} · versé ${euro(paid)}</span></span><span class="${cls}">${state}</span></div><button class="btn secondary compact has-icon quick-payment" type="button" data-person-index="${i}" aria-label="Enregistrer un versement pour ${escapeHTML(personName(i))}">${UI_ICONS.payment}<span class="btn-label">Enregistrer un versement</span></button></div>`;
   }).join('');
 }
 
