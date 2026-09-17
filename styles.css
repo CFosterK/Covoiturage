@@ -263,9 +263,9 @@ summary:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-
 @media(max-width:360px){.history-actions{grid-template-columns:1fr}}
 
 
-/* V43 — raise the banner 18px and retain its spacing to the first card. */
-.top{margin-bottom:calc(-32px - clamp(14px,5vw,30px))}
-.app-banner{transform:translateY(-18px);pointer-events:none}
+/* V44 — restore the V42 banner position, raised 10px and retain its spacing to the first card. */
+.top{margin-bottom:calc(-24px - clamp(14px,5vw,30px))}
+.app-banner{transform:translateY(-10px);pointer-events:none}
 .summary-entry{padding-bottom:12px;border-bottom:1px solid var(--hairline)}
 .summary-entry:last-child{border-bottom:0;padding-bottom:0}
 .summary-entry .summaryPerson{border-bottom:0;padding-bottom:10px}

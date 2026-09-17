@@ -1,8 +1,8 @@
 'use strict';
 const SCOPE=new URL(self.registration.scope);
 const CACHE_PREFIX=`covoiturage-${encodeURIComponent(SCOPE.pathname)}-`;
-const CACHE=`${CACHE_PREFIX}v43`;
-const CORE=['./','./index.html','./styles.css?v=43','./app.js?v=43','./manifest.webmanifest?v=43','./banner.png','./icon.png?v=43','./apple-touch-icon.png?v=43','./favicon-32.png?v=43','./icon-192.png?v=43','./icon-512.png?v=43','./icon-maskable-512.png?v=43'];
+const CACHE=`${CACHE_PREFIX}v44`;
+const CORE=['./','./index.html','./styles.css?v=44','./app.js?v=44','./manifest.webmanifest?v=44','./banner.png','./icon.png?v=44','./apple-touch-icon.png?v=44','./favicon-32.png?v=44','./icon-192.png?v=44','./icon-512.png?v=44','./icon-maskable-512.png?v=44'];
 const ALLOWED=new Set(CORE.map(path=>new URL(path,SCOPE).href));
 const CORE_PATHS=new Set([...ALLOWED].map(url=>new URL(url).pathname));
 const INDEX=new URL('./index.html',SCOPE).href;
