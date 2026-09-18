@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 47;
+const APP_VERSION = 48;
 const STORAGE_KEY = 'covoiturageData';
 const MAX_BACKUP_SIZE = 20_000_000;
 const MAX_PEOPLE = 30;
@@ -50,6 +50,7 @@ const cleanName = (value, fallback) => {
 };
 const escapeHTML = value => String(value).replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
 const euro = n => `${Math.round(finite(n,0))} €`;
+const paymentEuro = n => `${finite(n,0).toLocaleString('fr-FR',{maximumFractionDigits:2})} €`;
 const decimal = (n,digits=1) => finite(n,0).toLocaleString('fr-FR',{minimumFractionDigits:0,maximumFractionDigits:digits});
 
 const UI_ICONS = Object.freeze({
@@ -203,6 +204,7 @@ const rate = n => n ? Math.round(tripCost()/(n+1)) : 0;
 
 // Editing is temporary UI state; stored records keep the V37/V38 format.
 let editingTripId=null, newTripDraft=null;
+let activePaymentPerson=null, paymentSaving=false;
 const editingTrip=()=>data.trips.find(t=>t.id===editingTripId);
 const selectedPassengers=()=>$$('[data-person]:checked').map(el=>Number(el.dataset.person));
 
@@ -431,18 +433,18 @@ function filteredPayments(){
 
 let paymentDisplayLimit=8;
 function renderPayments(){
-  const selectedPerson=$('#payPerson').value;
-  $('#payPerson').innerHTML=data.people.map((name,i)=>`<option value="${i}">${escapeHTML(name)}${isArchived(i)?' (archivé)':''}</option>`).join('');
-  if(selectedPerson!==''&&data.people[Number(selectedPerson)]!==undefined) $('#payPerson').value=selectedPerson;
-  if(!$('#payDate').value) $('#payDate').value=getToday();
   renderHistoryFilter('payments');
   const payments=historyRecords('payments').sort((a,b)=>b.date.localeCompare(a.date));
   renderHistoryStatus('payments',payments.length,data.payments.length);
   $('#clearPayments').disabled=!data.payments.length;
-  $('#paymentHistory').innerHTML=payments.length?`<div class="small payment-caption">Versements · ${Math.min(paymentDisplayLimit,payments.length)} sur ${payments.length}${$('#paymentsPeriod').value==='all'?' (toutes périodes)':''}</div>${payments.slice(0,paymentDisplayLimit).map(p=>`<div class="payment-item"><span>${escapeHTML(personName(p.person))}${isArchived(p.person)?'<span class="archive-tag">archivé</span>':''}<br><span class="small">${escapeHTML(new Date(`${p.date}T12:00:00`).toLocaleDateString('fr-FR'))}</span></span><span class="payment-value"><b>${euro(p.amount)}</b><button class="btn danger compact has-icon delete-payment" type="button" aria-label="Supprimer ce versement" data-id="${p.id}">${UI_ICONS.trash}<span class="btn-label">Supprimer</span></button></span></div>`).join('')}${payments.length>paymentDisplayLimit?'<button type="button" class="btn secondary" id="morePayments">Afficher les versements suivants</button>':''}`:'<p class="small">Aucun versement pour ces filtres.</p>';
+  $('#paymentHistory').innerHTML=payments.length?`<div class="small payment-caption">Versements · ${Math.min(paymentDisplayLimit,payments.length)} sur ${payments.length}${$('#paymentsPeriod').value==='all'?' (toutes périodes)':''}</div>${payments.slice(0,paymentDisplayLimit).map(p=>`<div class="payment-item"><span>${escapeHTML(personName(p.person))}${isArchived(p.person)?'<span class="archive-tag">archivé</span>':''}<br><span class="small">${escapeHTML(new Date(`${p.date}T12:00:00`).toLocaleDateString('fr-FR'))}</span></span><span class="payment-value"><b>${paymentEuro(p.amount)}</b><button class="btn danger compact has-icon delete-payment" type="button" aria-label="Supprimer ce versement" data-id="${p.id}">${UI_ICONS.trash}<span class="btn-label">Supprimer</span></button></span></div>`).join('')}${payments.length>paymentDisplayLimit?'<button type="button" class="btn secondary" id="morePayments">Afficher les versements suivants</button>':''}`:'<p class="small">Aucun versement pour ces filtres.</p>';
 }
 
 function renderSummary(){
+  // Keep the live form and its draft when rebuilding rows, including save rollback.
+  const paymentForm=$('#paymentForm');
+  $('#paymentFormHome').append(paymentForm);
+  const archivedOpen=$('#summaryArchivedPeople')?.open||false;
   $('#summaryScope').textContent=$('#period').value==='all'
     ? 'Solde calculé sur tous les trajets et versements enregistrés.'
     : 'Solde de la période uniquement, sans report antérieur. Choisissez « Tout » pour connaître le solde global.';
@@ -451,26 +453,54 @@ function renderSummary(){
   const paidTotal=payments.reduce((sum,p)=>sum+p.amount,0);
   const totalCost=trips.reduce((sum,t)=>sum+t.cost,0);
   $('#sTrips').textContent=trips.length;
-  $('#sReceived').textContent=euro(paidTotal);
+  $('#sReceived').textContent=paymentEuro(paidTotal);
   $('#sCost').textContent=euro(totalCost);
   $('#sDriver').textContent=euro(totalCost-paidTotal);
   const relevantPeople=data.people.map((_,i)=>i).filter(i=>!isArchived(i)||trips.some(t=>t.people.includes(i))||payments.some(p=>p.person===i));
-  $('#personSummary').innerHTML=relevantPeople.map(i=>{
+  const renderPerson=i=>{
     const personTrips=trips.filter(t=>t.people.includes(i));
     const due=personTrips.reduce((sum,t)=>sum+t.rate,0);
     const paid=payments.filter(p=>p.person===i).reduce((sum,p)=>sum+p.amount,0);
-    const balance=due-paid;
-    const state=balance>0?`${euro(balance)} à payer`:balance<0?`Crédit ${euro(Math.abs(balance))}`:'Soldé ✓';
+    const balance=Math.round((due-paid)*100)/100;
+    const state=balance>0?`${paymentEuro(balance)} à payer`:balance<0?`Crédit ${paymentEuro(Math.abs(balance))}`:'Soldé ✓';
     const cls=balance>0?'balance-positive':balance<0?'balance-credit':'balance-zero';
-    return `<div class="summary-entry"><div class="summaryPerson"><span><strong class="summary-person-name">${escapeHTML(personName(i))}</strong>${isArchived(i)?'<span class="archive-tag">archivé</span>':''}<br><span class="small">${personTrips.length} trajet(s) · dû ${euro(due)} · versé ${euro(paid)}</span></span><span class="${cls}">${state}</span></div><button class="btn secondary compact has-icon quick-payment" type="button" data-person-index="${i}" aria-label="Enregistrer un versement pour ${escapeHTML(personName(i))}">${UI_ICONS.payment}<span class="btn-label">Enregistrer un versement</span></button></div>`;
-  }).join('');
+    return `<div class="summary-entry"><div class="summaryPerson"><span><strong class="summary-person-name">${escapeHTML(personName(i))}</strong>${isArchived(i)?'<span class="archive-tag">archivé</span>':''}<br><span class="small">${personTrips.length} trajet(s) · dû ${euro(due)} · versé ${paymentEuro(paid)}</span></span><span class="${cls}">${state}</span></div><button class="btn secondary compact has-icon quick-payment" type="button" data-person-index="${i}" aria-expanded="false" aria-controls="payment-slot-${i}" aria-label="Enregistrer un versement pour ${escapeHTML(personName(i))}">${UI_ICONS.payment}<span class="btn-label">Enregistrer un versement</span></button><div id="payment-slot-${i}"></div></div>`;
+  };
+  const otherArchived=data.archivedPeople.filter(i=>!relevantPeople.includes(i));
+  $('#personSummary').innerHTML=relevantPeople.map(renderPerson).join('')+(otherArchived.length
+    ? `<details id="summaryArchivedPeople" class="summary-archived"${archivedOpen?' open':''}><summary>Passagers archivés (${otherArchived.length})</summary>${otherArchived.map(renderPerson).join('')}</details>`:'');
+  mountPaymentForm();
+}
+
+function mountPaymentForm(){
+  if(activePaymentPerson===null) return;
+  const slot=$(`#payment-slot-${activePaymentPerson}`);
+  if(!slot){closePayment();return;}
+  slot.append($('#paymentForm'));
+  const details=slot.closest('details');if(details) details.open=true;
+  slot.parentElement.querySelector('.quick-payment').setAttribute('aria-expanded','true');
+}
+
+function closePayment(restoreFocus=false){
+  const index=activePaymentPerson,form=$('#paymentForm');
+  if(form.contains(document.activeElement)) document.activeElement.blur();
+  activePaymentPerson=null;
+  $('#paymentFormHome').append(form);
+  form.reset();$('#paymentError').textContent='';
+  const button=$(`#personSummary .quick-payment[data-person-index="${index}"]`);
+  button?.setAttribute('aria-expanded','false');
+  if(restoreFocus) button?.focus({preventScroll:true});
 }
 
 function preparePayment(index){
   if(!Number.isInteger(index)||index<0||index>=data.people.length) return;
-  $('#payPerson').value=String(index);$('#payAmount').value='';$('#payDate').value=getToday();
-  // Focus synchronously within the tap so iOS can open the keyboard.
-  // Let the browser reveal the field; no competing scripted scrolling.
+  if(activePaymentPerson!==index){
+    closePayment();activePaymentPerson=index;
+    $('#payDate').value=getToday();
+    $('#paymentForm').setAttribute('aria-label',`Enregistrer un versement pour ${personName(index)}`);
+    mountPaymentForm();
+  }
+  // Synchronous focus during the tap opens the iOS keyboard without competing scrolls.
   $('#payAmount').focus();
 }
 
@@ -588,6 +618,7 @@ function renderAll(){
 }
 
 function selectTab(tab){
+  closePayment();
   if(tab!=='today' && editingTripId){
     if(!confirm('Quitter la modification sans enregistrer ?')) return;
     finishEditing();
@@ -672,11 +703,25 @@ function deleteArchivedPerson(index){
 }
 
 function addPayment(){
-  const person=Number($('#payPerson').value), amount=Number($('#payAmount').value), date=safeDate($('#payDate').value||getToday());
-  if(!Number.isInteger(person)||person<0||person>=data.people.length) return alert('Passager invalide.');
-  if(!Number.isFinite(amount)||amount<=0||amount>1_000_000) return alert('Merci de saisir un montant supérieur à 0 €.');
-  data.payments.push({id:makeId(),person,amount,date});
-  if(saveData()){ $('#payAmount').value=''; renderSummary(); renderPayments(); flash('Versement enregistré ✓'); }
+  if(paymentSaving||activePaymentPerson===null) return;
+  const person=activePaymentPerson,raw=$('#payAmount').value.trim(),amount=Number(raw.replace(',','.')),date=$('#payDate').value;
+  const error=$('#paymentError');error.textContent='';
+  if(!Number.isInteger(person)||person<0||person>=data.people.length){error.textContent='Passager invalide.';return;}
+  if(!/^\d+(?:[.,]\d{1,2})?$/.test(raw)||!Number.isFinite(amount)||amount<=0||amount>1_000_000){
+    error.textContent='Saisissez un montant supérieur à 0 €, avec deux décimales maximum (plafond : 1 000 000 €).';$('#payAmount').focus();return;
+  }
+  if(!date||safeDate(date,'')!==date){error.textContent='Choisissez une date valide.';$('#payDate').focus();return;}
+  paymentSaving=true;$('#addPayment').disabled=true;
+  try{
+    data.payments.push({id:makeId(),person,amount,date});
+    if(saveData()){
+      closePayment(true);renderSummary();renderPayments();
+      $(`#personSummary .quick-payment[data-person-index="${person}"]`)?.focus({preventScroll:true});
+      flash('Versement enregistré ✓');
+    }else{
+      error.textContent='Le versement n’a pas été enregistré. Votre saisie est conservée.';
+    }
+  }finally{paymentSaving=false;$('#addPayment').disabled=false;}
 }
 
 function downloadBlob(blob,filename){
@@ -770,10 +815,11 @@ $('#archivedPeopleSettings').addEventListener('click',event=>{
   const remove=event.target.closest('.delete-person');
   if(remove){ deleteArchivedPerson(Number(remove.dataset.personIndex)); }
 });
-$('#addPayment').addEventListener('click',addPayment);
+$('#paymentForm').addEventListener('submit',event=>{event.preventDefault();addPayment();});
+$('#cancelPayment').addEventListener('click',()=>closePayment(true));
 $('#themeMode').addEventListener('change',event=>{data.settings.theme=event.target.value;if(saveData()){applyTheme();flash('Apparence mise à jour ✓');}});
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if((data.settings.theme||'system')==='system')applyTheme();});
-$('#period').addEventListener('change',renderSummary);
+$('#period').addEventListener('change',()=>{closePayment();renderSummary();});
 $('#backupData').addEventListener('click',()=>{void backupData().catch(()=>alert('La sauvegarde n’a pas pu être créée. Réessayez.'));});
 $('#restoreFile').addEventListener('change',async event=>{
   const input=event.target, file=input.files&&input.files[0];
@@ -791,8 +837,7 @@ $('#historyList').addEventListener('click',event=>{
 });
 $('#paymentHistory').addEventListener('click',event=>{
   if(event.target.closest('#morePayments')){
-    const selectedPerson=$('#payPerson').value;
-    paymentDisplayLimit+=8;renderPayments();$('#payPerson').value=selectedPerson;
+    paymentDisplayLimit+=8;renderPayments();
     return;
   }
   const button=event.target.closest('.delete-payment'); if(!button) return;

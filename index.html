@@ -13,11 +13,11 @@
   <meta name="format-detection" content="telephone=no">
   <meta name="color-scheme" content="light dark">
   <title>Covoiturage</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=47">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=47">
-  <link rel="manifest" href="manifest.webmanifest?v=47">
-  <link rel="stylesheet" href="styles.css?v=47">
-  <script defer src="app.js?v=47"></script>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=48">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=48">
+  <link rel="manifest" href="manifest.webmanifest?v=48">
+  <link rel="stylesheet" href="styles.css?v=48">
+  <script defer src="app.js?v=48"></script>
 </head>
 <body data-view="today">
   <div class="ambient" aria-hidden="true"></div>
@@ -124,15 +124,15 @@
         <div id="personSummary" class="summary-list"></div>
       </article>
 
-      <article class="card content-card" id="paymentForm">
-        <h2 class="date">Enregistrer un versement</h2>
-        <div class="payGrid">
-          <div class="field"><label for="payPerson">Personne</label><select id="payPerson"></select></div>
-          <div class="field"><label for="payAmount">Montant (€)</label><input id="payAmount" type="number" min="0" max="1000000" step="1" inputmode="decimal" placeholder="ex. 50"></div>
-        </div>
-        <div class="field"><label for="payDate">Date du versement</label><input id="payDate" type="date" autocomplete="off"></div>
-        <button class="btn primary has-icon" id="addPayment" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"/></svg></span><span class="btn-label">Enregistrer le versement</span></button>
-      </article>
+      <div id="paymentFormHome" hidden>
+        <form id="paymentForm" class="inline-payment" aria-label="Enregistrer un versement" novalidate>
+          <div class="field"><label for="payAmount">Montant (€)</label><input id="payAmount" type="text" inputmode="decimal" autocomplete="off" placeholder="ex. 50" required></div>
+          <div class="field"><label for="payDate">Date du versement</label><input id="payDate" type="date" autocomplete="off" required></div>
+          <p id="paymentError" class="small payment-error" role="alert"></p>
+          <button class="btn primary has-icon" id="addPayment" type="submit"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"/></svg></span><span class="btn-label">Enregistrer le versement</span></button>
+          <button class="btn secondary" id="cancelPayment" type="button">Annuler</button>
+        </form>
+      </div>
 
       <article class="card content-card" id="paymentsHistoryCard">
         <h2 class="date">Historique des versements</h2>
@@ -209,7 +209,7 @@
         <div class="privacy-note">
         <h3 class="subsection-title">Confidentialité</h3>
         <p class="small">Les trajets, versements et réglages restent sur cet appareil. L’application n’envoie pas ces données vers un serveur.</p>
-        <div class="version-badge">Version 47 · Liquid Glass</div>
+        <div class="version-badge">Version 48 · Liquid Glass</div>
         </div>
       </article>
     </section>

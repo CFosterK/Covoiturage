@@ -286,3 +286,12 @@ body.keyboard-editing .glass-nav .tab{pointer-events:none}
 .history-filter-grid input[type="month"]{width:100%;min-width:0;max-width:100%}
 .clear-history{margin-top:20px}
 @media(max-width:420px){.history-filter-grid{grid-template-columns:1fr}}
+
+/* V48: one payment form mounted directly below the selected passenger. */
+.inline-payment{margin:12px 0 4px;padding:4px 0 0;border-top:1px solid var(--hairline)}
+.inline-payment .btn+.btn{margin-top:10px}
+.payment-error{color:var(--danger)}
+.payment-error:empty{display:none}
+.summary-archived{margin-top:16px;padding-top:8px;border-top:1px solid var(--hairline)}
+.summary-archived>summary{min-height:44px;padding:12px 0;cursor:pointer;color:var(--muted);font-weight:650}
+.quick-payment[aria-expanded="true"]{background:var(--accent-soft)}
