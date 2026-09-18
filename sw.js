@@ -1,8 +1,8 @@
 'use strict';
 const SCOPE=new URL(self.registration.scope);
 const CACHE_PREFIX=`covoiturage-${encodeURIComponent(SCOPE.pathname)}-`;
-const CACHE=`${CACHE_PREFIX}v49`;
-const CORE=['./','./index.html','./styles.css?v=49','./app.js?v=49','./manifest.webmanifest?v=49','./banner.png','./icon.png?v=49','./apple-touch-icon.png?v=49','./favicon-32.png?v=49','./icon-192.png?v=49','./icon-512.png?v=49','./icon-maskable-512.png?v=49'];
+const CACHE=`${CACHE_PREFIX}v51`;
+const CORE=['./','./index.html','./styles.css?v=51','./app.js?v=51','./manifest.webmanifest?v=51','./banner.png','./icon.png?v=51','./apple-touch-icon.png?v=51','./favicon-32.png?v=51','./icon-192.png?v=51','./icon-512.png?v=51','./icon-maskable-512.png?v=51'];
 const ALLOWED=new Set(CORE.map(path=>new URL(path,SCOPE).href));
 const CORE_PATHS=new Set([...ALLOWED].map(url=>new URL(url).pathname));
 const INDEX=new URL('./index.html',SCOPE).href;
@@ -49,3 +49,4 @@ self.addEventListener('fetch',event=>{
     }catch{return Response.error();}
   })());
 });
+

@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 49;
+const APP_VERSION = 51;
 const STORAGE_KEY = 'covoiturageData';
 const MAX_BACKUP_SIZE = 20_000_000;
 const MAX_PEOPLE = 30;
@@ -917,3 +917,4 @@ if('serviceWorker' in navigator){
     });
   }).catch(()=>flash('Le mode hors ligne n’a pas pu être préparé. Réessayez avec une connexion.'));
 }
+
