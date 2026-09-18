@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 48;
+const APP_VERSION = 49;
 const STORAGE_KEY = 'covoiturageData';
 const MAX_BACKUP_SIZE = 20_000_000;
 const MAX_PEOPLE = 30;
@@ -205,6 +205,7 @@ const rate = n => n ? Math.round(tripCost()/(n+1)) : 0;
 // Editing is temporary UI state; stored records keep the V37/V38 format.
 let editingTripId=null, newTripDraft=null;
 let activePaymentPerson=null, paymentSaving=false;
+let personEditorMode=null, personEditorIndex=null, personSaving=false;
 const editingTrip=()=>data.trips.find(t=>t.id===editingTripId);
 const selectedPassengers=()=>$$('[data-person]:checked').map(el=>Number(el.dataset.person));
 
@@ -572,12 +573,15 @@ function updateVehicleCostHelp(){
 }
 
 function renderPeopleSettings(){
+  $('#personEditorHome').append($('#personEditor'));
   const active=activePeopleIndices();
-  $('#activePeopleSettings').innerHTML=active.length?active.map((i,position)=>`<div class="person-setting-row"><div class="field"><label for="personName${i}">Passager ${position+1}</label><input id="personName${i}" data-person-name="${i}" maxlength="40" autocomplete="off" value="${escapeHTML(personName(i))}"></div><button class="btn secondary compact has-icon archive-person" type="button" data-person-index="${i}">${UI_ICONS.archive}<span class="btn-label">Archiver</span></button></div>`).join(''):'<p class="small">Aucun passager actif.</p>';
+  $('#activePeopleSettings').innerHTML=active.length?active.map(i=>`<div class="person-management-row"><strong class="person-management-name">${escapeHTML(personName(i))}</strong><div class="person-management-actions"><button class="btn secondary compact has-icon edit-person" type="button" data-person-index="${i}" aria-expanded="false" aria-controls="person-edit-slot-${i}" aria-label="Modifier ${escapeHTML(personName(i))}">${UI_ICONS.edit}<span class="btn-label">Modifier</span></button><button class="btn secondary compact has-icon archive-person" type="button" data-person-index="${i}" aria-label="Archiver ${escapeHTML(personName(i))}">${UI_ICONS.archive}<span class="btn-label">Archiver</span></button></div><div id="person-edit-slot-${i}"></div></div>`).join(''):'<p class="small">Aucun passager actif.</p>';
+
   const archived=data.archivedPeople.filter(i=>i>=0&&i<data.people.length);
   $('#archivedPeopleSection').classList.toggle('hidden',archived.length===0);
   $('#archivedCount').textContent=`(${archived.length})`;
   $('#archivedPeopleSettings').innerHTML=archived.map(i=>`<div class="archived-person"><span class="archived-label">${escapeHTML(personName(i))}</span><div class="archived-person-actions"><button class="btn secondary compact has-icon reactivate-person" type="button" data-person-index="${i}">${UI_ICONS.restore}<span class="btn-label">Réactiver</span></button><button class="btn danger compact has-icon delete-person" type="button" data-person-index="${i}">${UI_ICONS.trash}<span class="btn-label">Supprimer</span></button></div></div>`).join('');
+  mountPersonEditor();
 }
 
 function renderBackupStatus(){
@@ -618,6 +622,7 @@ function renderAll(){
 }
 
 function selectTab(tab){
+  closePersonEditor();
   closePayment();
   if(tab!=='today' && editingTripId){
     if(!confirm('Quitter la modification sans enregistrer ?')) return;
@@ -648,20 +653,57 @@ function saveSettings(){
   if(saveData()){renderSettings();calcToday();renderSummary();flash('Réglages enregistrés ✓');}
 }
 
-function savePeople(){
-  $$('[data-person-name]').forEach(input=>{
-    const i=Number(input.dataset.personName);
-    if(Number.isInteger(i)&&i>=0&&i<data.people.length) data.people[i]=cleanName(input.value,personName(i));
-  });
-  if(saveData()){renderAll();flash('Noms enregistrés ✓');}
+function personEditorTrigger(){
+  return personEditorMode==='add'?$('#addPerson'):$(`#activePeopleSettings .edit-person[data-person-index="${personEditorIndex}"]`);
 }
-
-function addPerson(){
-  if(data.people.length>=MAX_PEOPLE) return alert(`La limite est de ${MAX_PEOPLE} passagers enregistrés.`);
-  const input=$('#newPersonName');
-  const name=cleanName(input.value,`Passager ${data.people.length+1}`);
-  data.people.push(name);
-  if(saveData()){input.value='';renderAll();flash(`${name} ajouté ✓`);}
+function mountPersonEditor(){
+  if(!personEditorMode) return;
+  const slot=personEditorMode==='add'?$('#personAddSlot'):$(`#person-edit-slot-${personEditorIndex}`);
+  if(!slot){closePersonEditor();return;}
+  slot.append($('#personEditor'));personEditorTrigger()?.setAttribute('aria-expanded','true');
+}
+function closePersonEditor(restoreFocus=false){
+  const form=$('#personEditor'),trigger=personEditorTrigger();
+  if(form.contains(document.activeElement)) document.activeElement.blur();
+  $('#personEditorHome').append(form);form.reset();
+  $('#personEditorError').textContent='';$('#personDuplicates').hidden=true;$('#personDuplicates').replaceChildren();
+  trigger?.setAttribute('aria-expanded','false');personEditorMode=null;personEditorIndex=null;
+  if(restoreFocus) trigger?.focus({preventScroll:true});
+}
+function openPersonEditor(index=null){
+  if(index!==null&&(!Number.isInteger(index)||!activePeopleIndices().includes(index))) return;
+  closePersonEditor();personEditorMode=index===null?'add':'edit';personEditorIndex=index;
+  $('#personEditorName').value=index===null?'':personName(index);
+  $('#savePerson .btn-label').textContent=index===null?'Ajouter':'Enregistrer';
+  $('#personEditor').setAttribute('aria-label',index===null?'Ajouter un passager':`Modifier ${personName(index)}`);
+  mountPersonEditor();$('#personEditorName').focus();
+}
+const comparablePersonName=name=>name.normalize('NFC').toLocaleLowerCase('fr-FR');
+function savePerson(allowHomonym=false,reactivateIndex=null){
+  if(!personEditorMode||personSaving) return;
+  const raw=$('#personEditorName').value,name=cleanName(raw,''),error=$('#personEditorError');
+  error.textContent='';
+  if(!name||raw.trim().length>40){error.textContent='Saisissez un nom de 1 à 40 caractères.';$('#personEditorName').focus();return;}
+  const matches=data.people.map((_,i)=>i).filter(i=>i!==personEditorIndex&&comparablePersonName(personName(i))===comparablePersonName(name));
+  if(reactivateIndex!==null&&(!matches.includes(reactivateIndex)||!isArchived(reactivateIndex))) return;
+  if(matches.length&&!allowHomonym&&reactivateIndex===null){
+    const panel=$('#personDuplicates');panel.hidden=false;
+    panel.innerHTML=`<p class="small">Ce nom existe déjà. Corrigez-le ou confirmez qu’il s’agit d’une autre personne.</p>${matches.filter(isArchived).map(i=>`<button type="button" class="btn secondary duplicate-reactivate" data-person-index="${i}">Réactiver ${escapeHTML(personName(i))}</button>`).join('')}<button type="button" class="btn secondary" id="confirmPersonHomonym">${personEditorMode==='add'?'Ajouter une autre personne':'Conserver ce nom pour cette personne'}</button><button type="button" class="btn secondary" id="correctPersonName">Corriger le nom</button>`;
+    return;
+  }
+  if(personEditorMode==='add'&&reactivateIndex===null&&data.people.length>=MAX_PEOPLE){error.textContent=`La limite est de ${MAX_PEOPLE} passagers enregistrés.`;return;}
+  const focusIndex=reactivateIndex??(personEditorMode==='add'?data.people.length:personEditorIndex);
+  personSaving=true;$('#savePerson').disabled=true;
+  try{
+    if(reactivateIndex!==null) data.archivedPeople=data.archivedPeople.filter(i=>i!==reactivateIndex);
+    else if(personEditorMode==='add') data.people.push(name);
+    else data.people[personEditorIndex]=name;
+    if(saveData()){
+      closePersonEditor();renderAll();
+      $(`#activePeopleSettings .edit-person[data-person-index="${focusIndex}"]`)?.focus({preventScroll:true});
+      flash(reactivateIndex!==null?'Passager réactivé ✓':'Passager enregistré ✓');
+    }else error.textContent='L’enregistrement a échoué. Votre saisie est conservée.';
+  }finally{personSaving=false;$('#savePerson').disabled=false;}
 }
 
 function archivePerson(index){
@@ -685,6 +727,8 @@ function deleteArchivedPerson(index){
   const usedInPayments=data.payments.some(p=>p.person===index);
   const warning=usedInTrips||usedInPayments ? ' Ses versements et sa participation aux trajets seront supprimés. Les trajets où cette personne était le seul passager seront supprimés ; les autres trajets et leurs coûts seront conservés.' : '';
   if(!confirm(`Supprimer définitivement ${name} ? Cette action est irréversible.${warning}`)) return;
+  // Removing an index shifts later passengers: abandon any editor targeting the old indices.
+  if(personEditorMode) closePersonEditor();
   data.people.splice(index,1);
   data.archivedPeople=data.archivedPeople
     .filter(i=>i!==index)
@@ -774,7 +818,7 @@ async function restoreData(file){
   if(!confirm(`Restaurer cette sauvegarde (${next.trips.length} trajets, ${next.payments.length} versements) ? Les données actuelles seront remplacées.${report}`)) return;
   if(wrapped && parsed.exportedAt){ const exported=safeIsoDateTime(parsed.exportedAt); if(exported) next.lastBackupAt=exported; }
   data=next;
-  if(saveData({allowRecovery:true})){paymentDisplayLimit=8;applyTheme();renderAll();flash('Sauvegarde restaurée ✓');}
+  if(saveData({allowRecovery:true})){if(personEditorMode)closePersonEditor();paymentDisplayLimit=8;applyTheme();renderAll();flash('Sauvegarde restaurée ✓');}
 }
 
 function safeCsvValue(value){
@@ -802,10 +846,17 @@ $('#saveSettings').addEventListener('click',saveSettings);
 $('#energyType').addEventListener('change',updateEnergyLabels);
 $('#distance').addEventListener('input',updateVehicleCostHelp);
 $('#vehicleCostPerKm').addEventListener('input',updateVehicleCostHelp);
-$('#savePeople').addEventListener('click',savePeople);
-$('#addPerson').addEventListener('click',addPerson);
-$('#newPersonName').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();addPerson();}});
+$('#addPerson').addEventListener('click',()=>openPersonEditor());
+$('#personEditor').addEventListener('submit',event=>{event.preventDefault();savePerson();});
+$('#cancelPerson').addEventListener('click',()=>closePersonEditor(true));
+$('#personEditorName').addEventListener('input',()=>{$('#personDuplicates').hidden=true;$('#personDuplicates').replaceChildren();$('#personEditorError').textContent='';});
+$('#personDuplicates').addEventListener('click',event=>{
+  if(event.target.closest('#confirmPersonHomonym')) savePerson(true);
+  if(event.target.closest('#correctPersonName')){$('#personDuplicates').hidden=true;$('#personEditorName').focus();}
+  const reactivate=event.target.closest('.duplicate-reactivate');if(reactivate)savePerson(false,Number(reactivate.dataset.personIndex));
+});
 $('#activePeopleSettings').addEventListener('click',event=>{
+  const edit=event.target.closest('.edit-person');if(edit){openPersonEditor(Number(edit.dataset.personIndex));return;}
   const button=event.target.closest('.archive-person'); if(!button) return;
   archivePerson(Number(button.dataset.personIndex));
 });

@@ -13,11 +13,11 @@
   <meta name="format-detection" content="telephone=no">
   <meta name="color-scheme" content="light dark">
   <title>Covoiturage</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=48">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=48">
-  <link rel="manifest" href="manifest.webmanifest?v=48">
-  <link rel="stylesheet" href="styles.css?v=48">
-  <script defer src="app.js?v=48"></script>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=49">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=49">
+  <link rel="manifest" href="manifest.webmanifest?v=49">
+  <link rel="stylesheet" href="styles.css?v=49">
+  <script defer src="app.js?v=49"></script>
 </head>
 <body data-view="today">
   <div class="ambient" aria-hidden="true"></div>
@@ -176,13 +176,19 @@
 
       <article class="card content-card">
         <h2 class="date">Passagers</h2>
-        <p class="small">Les passagers archivés disparaissent de l’écran du trajet, mais leur historique et leurs versements sont conservés.</p>
-        <div id="activePeopleSettings" class="people-settings-list"></div>
-        <button class="btn primary has-icon" id="savePeople" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"/></svg></span><span class="btn-label">Enregistrer les noms</span></button>
-        <div class="person-add-block">
-          <div class="field"><label for="newPersonName">Nouveau passager</label><input id="newPersonName" maxlength="40" autocomplete="off" placeholder="Prénom"></div>
-          <button class="btn secondary has-icon" id="addPerson" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 5v14M5 12h14"/></svg></span><span class="btn-label">Ajouter un passager</span></button>
+        <button class="btn secondary has-icon" id="addPerson" type="button" aria-expanded="false" aria-controls="personEditor"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 5v14M5 12h14"/></svg></span><span class="btn-label">Ajouter un passager</span></button>
+        <div id="personAddSlot"></div>
+        <div id="personEditorHome" hidden>
+          <form id="personEditor" class="person-editor" novalidate>
+            <div class="field"><label for="personEditorName">Prénom ou nom</label><input id="personEditorName" maxlength="40" autocomplete="off" autocapitalize="words" required></div>
+            <p id="personEditorError" class="small payment-error" role="alert"></p>
+            <div id="personDuplicates" class="person-duplicates" hidden></div>
+            <button id="savePerson" class="btn primary has-icon" type="submit"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"/></svg></span><span class="btn-label">Ajouter</span></button>
+            <button id="cancelPerson" class="btn secondary" type="button">Annuler</button>
+          </form>
         </div>
+        <div id="activePeopleSettings" class="people-settings-list"></div>
+        <p class="small">Les passagers archivés disparaissent de l’écran du trajet, mais leur historique et leurs versements sont conservés.</p>
         <details id="archivedPeopleSection" class="archived-section hidden">
           <summary>Passagers archivés <span id="archivedCount"></span></summary>
           <div id="archivedPeopleSettings"></div>
@@ -209,7 +215,7 @@
         <div class="privacy-note">
         <h3 class="subsection-title">Confidentialité</h3>
         <p class="small">Les trajets, versements et réglages restent sur cet appareil. L’application n’envoie pas ces données vers un serveur.</p>
-        <div class="version-badge">Version 48 · Liquid Glass</div>
+        <div class="version-badge">Version 49 · Liquid Glass</div>
         </div>
       </article>
     </section>

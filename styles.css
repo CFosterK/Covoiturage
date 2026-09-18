@@ -295,3 +295,15 @@ body.keyboard-editing .glass-nav .tab{pointer-events:none}
 .summary-archived{margin-top:16px;padding-top:8px;border-top:1px solid var(--hairline)}
 .summary-archived>summary{min-height:44px;padding:12px 0;cursor:pointer;color:var(--muted);font-weight:650}
 .quick-payment[aria-expanded="true"]{background:var(--accent-soft)}
+
+/* V49: banner from the approved preview, with a fade into the real page background. */
+.top{margin:0 -12px 0}
+.app-banner{transform:none;filter:none;border:0;border-radius:0;mask-image:linear-gradient(to bottom,#000 0%,#000 65%,rgba(0,0,0,.95) 73%,rgba(0,0,0,.65) 84%,rgba(0,0,0,.2) 94%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 65%,rgba(0,0,0,.95) 73%,rgba(0,0,0,.65) 84%,rgba(0,0,0,.2) 94%,transparent 100%)}
+.person-management-row{padding:16px 0;border-bottom:1px solid var(--hairline)}
+.person-management-name{display:block;font-size:18px;font-weight:750;overflow-wrap:anywhere;margin-bottom:10px}
+.person-management-actions{display:flex;gap:10px;flex-wrap:wrap}
+.person-management-actions .btn{flex:1;min-width:120px}
+.person-editor{margin:12px 0;padding:4px 0}
+.person-editor .btn+.btn,.person-duplicates .btn{margin-top:10px}
+.person-duplicates{padding:8px 0}
+.person-duplicates[hidden],#personEditorHome[hidden]{display:none}
