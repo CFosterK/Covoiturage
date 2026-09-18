@@ -310,3 +310,31 @@ body.keyboard-editing .glass-nav .tab{pointer-events:none}
 .person-editor .btn+.btn,.person-duplicates .btn{margin-top:10px}
 .person-duplicates{padding:8px 0}
 .person-duplicates[hidden],#personEditorHome[hidden]{display:none}
+
+/* V52: natural page scrolling over an immobile background. */
+:root{--content:rgba(249,251,255,.90);--banner-height:calc(min(100vw,780px) / 3)}
+html[data-theme="dark"]{--content:rgba(24,29,37,.90)}
+body{isolation:isolate;padding-top:calc(env(safe-area-inset-top,0px) + var(--banner-height))}
+.ambient{z-index:-1}
+.top{position:fixed;top:env(safe-area-inset-top,0px);left:50%;width:min(100%,780px);height:var(--banner-height);transform:translateX(-50%);margin:0;z-index:0;pointer-events:none}
+.app-banner{width:100%;height:100%;object-fit:contain;mask-image:linear-gradient(to bottom,transparent 0%,#000 18%,#000 65%,rgba(0,0,0,.95) 73%,rgba(0,0,0,.65) 84%,rgba(0,0,0,.2) 94%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 18%,#000 65%,rgba(0,0,0,.95) 73%,rgba(0,0,0,.65) 84%,rgba(0,0,0,.2) 94%,transparent 100%)}
+.app-shell{position:relative;z-index:1}
+.status-toast{z-index:50}
+
+html.pwa-installed,html.pwa-installed body{touch-action:pan-x pan-y}
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){
+  .card{background:rgba(249,251,255,.98)}
+  html[data-theme="dark"] .card{background:rgba(24,29,37,.98)}
+}
+
+/* Passenger blocks retained; buttons use their original V51 appearance. */
+:root{--passenger-surface:rgba(232,239,248,.94)}
+html[data-theme="dark"]{--passenger-surface:rgba(37,48,62,.94)}
+.active-people-title{margin-top:22px;margin-bottom:12px}
+.person-management-row{padding:16px;margin:12px 0;border:1px solid var(--hairline);border-radius:20px;background:var(--passenger-surface)}
+.person-management-row:last-child{margin-bottom:0}
+.person-management-name{margin-bottom:12px}
+.person-management-actions{gap:8px}
+.person-management-actions .btn{min-width:110px}
+.person-management-row .person-editor{margin-bottom:0}
+@media(max-width:360px){.person-management-row{padding:12px}.person-management-actions .btn{min-width:100px;padding-left:8px;padding-right:8px}}

@@ -1,6 +1,5 @@
 <!doctype html>
-<html lang="fr">
-<head>
+<html lang="fr"><head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; media-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
@@ -13,43 +12,43 @@
   <meta name="format-detection" content="telephone=no">
   <meta name="color-scheme" content="light dark">
   <title>Covoiturage</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=51">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=51">
-  <link rel="manifest" href="manifest.webmanifest?v=51">
-  <link rel="stylesheet" href="styles.css?v=51">
-  <script defer src="app.js?v=51"></script>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=53">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=53">
+  <link rel="manifest" href="manifest.webmanifest?v=53">
+  <link rel="stylesheet" href="styles.css?v=53">
+  <script defer="" src="app.js?v=53"></script>
 </head>
-<body data-view="today">
+<body data-view="today"><div id="status" class="status-toast" role="status" aria-live="polite"></div>
   <div class="ambient" aria-hidden="true"></div>
 
   <header class="top">
     <img class="app-banner" src="banner.png" alt="Covoiturage">
-    <div id="status" class="status-toast" role="status" aria-live="polite"></div>
+    
   </header>
 
   <main class="app-shell" id="app">
     <nav class="tabs glass-nav" aria-label="Navigation principale" role="tablist">
       <button type="button" class="tab active" data-tab="today" role="tab" aria-selected="true" aria-controls="today">
         <span class="tab-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" focusable="false"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/></svg>
+          <svg viewBox="0 0 24 24" focusable="false"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"></path></svg>
         </span>
         <span class="tab-label">Trajet</span>
       </button>
       <button type="button" class="tab" data-tab="history" role="tab" aria-selected="false" aria-controls="history">
         <span class="tab-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" focusable="false"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8M3 3v5h5M12 7v5l4 2"/></svg>
+          <svg viewBox="0 0 24 24" focusable="false"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8M3 3v5h5M12 7v5l4 2"></path></svg>
         </span>
         <span class="tab-label">Historique</span>
       </button>
       <button type="button" class="tab" data-tab="summary" role="tab" aria-selected="false" aria-controls="summary">
         <span class="tab-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" focusable="false"><path d="M3 3v16a2 2 0 0 0 2 2h16M18 17V9M13 17V5M8 17v-3"/></svg>
+          <svg viewBox="0 0 24 24" focusable="false"><path d="M3 3v16a2 2 0 0 0 2 2h16M18 17V9M13 17V5M8 17v-3"></path></svg>
         </span>
         <span class="tab-label">Bilan</span>
       </button>
       <button type="button" class="tab" data-tab="settings" role="tab" aria-selected="false" aria-controls="settings">
         <span class="tab-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" focusable="false"><path d="M12.22 2h-.44a2 2 0 0 0-2 1.72l-.12.88a2 2 0 0 1-1.18 1.52l-.42.24a2 2 0 0 1-1.9.18l-.82-.34a2 2 0 0 0-2.46.87l-.22.38a2 2 0 0 0 .47 2.59l.7.54a2 2 0 0 1 .72 1.78v.48a2 2 0 0 1-.72 1.78l-.7.54a2 2 0 0 0-.47 2.59l.22.38a2 2 0 0 0 2.46.87l.82-.34a2 2 0 0 1 1.9.18l.42.24a2 2 0 0 1 1.18 1.52l.12.88a2 2 0 0 0 2 1.72h.44a2 2 0 0 0 2-1.72l.12-.88a2 2 0 0 1 1.18-1.52l.42-.24a2 2 0 0 1 1.9-.18l.82.34a2 2 0 0 0 2.46-.87l.22-.39a2 2 0 0 0-.47-2.59l-.7-.53a2 2 0 0 1-.72-1.78v-.48a2 2 0 0 1 .72-1.78l.7-.54a2 2 0 0 0 .47-2.59l-.22-.38a2 2 0 0 0-2.46-.87l-.82.34a2 2 0 0 1-1.9-.18l-.42-.24a2 2 0 0 1-1.18-1.52l-.12-.88a2 2 0 0 0-2-1.72Z"/><circle cx="12" cy="12" r="3"/></svg>
+          <svg viewBox="0 0 24 24" focusable="false"><path d="M12.22 2h-.44a2 2 0 0 0-2 1.72l-.12.88a2 2 0 0 1-1.18 1.52l-.42.24a2 2 0 0 1-1.9.18l-.82-.34a2 2 0 0 0-2.46.87l-.22.38a2 2 0 0 0 .47 2.59l.7.54a2 2 0 0 1 .72 1.78v.48a2 2 0 0 1-.72 1.78l-.7.54a2 2 0 0 0-.47 2.59l.22.38a2 2 0 0 0 2.46.87l.82-.34a2 2 0 0 1 1.9.18l.42.24a2 2 0 0 1 1.18 1.52l.12.88a2 2 0 0 0 2 1.72h.44a2 2 0 0 0 2-1.72l.12-.88a2 2 0 0 1 1.18-1.52l.42-.24a2 2 0 0 1 1.9-.18l.82.34a2 2 0 0 0 2.46-.87l.22-.39a2 2 0 0 0-.47-2.59l-.7-.53a2 2 0 0 1-.72-1.78v-.48a2 2 0 0 1 .72-1.78l.7-.54a2 2 0 0 0 .47-2.59l-.22-.38a2 2 0 0 0-2.46-.87l-.82.34a2 2 0 0 1-1.9-.18l-.42-.24a2 2 0 0 1-1.18-1.52l-.12-.88a2 2 0 0 0-2-1.72Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
         </span>
         <span class="tab-label">Réglages</span>
       </button>
@@ -74,8 +73,8 @@
           <div class="metric"><span>Coût trajet</span><b id="tripCost">0 €</b></div>
         </div>
         <div class="actions">
-          <button class="btn primary has-icon" id="save" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"/></svg></span><span class="btn-label" id="saveTripLabel">Enregistrer le trajet</span></button>
-          <button class="btn secondary hidden" id="cancelEdit" type="button">Annuler la modification</button>
+          <button class="btn primary has-icon" id="save" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"></path></svg></span><span class="btn-label" id="saveTripLabel">Enregistrer le trajet</span></button>
+          <button class="btn secondary hidden has-icon" id="cancelEdit" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m6 6 12 12M18 6 6 18"></path></svg></span><span class="btn-label">Annuler la modification</span></button>
         </div>
       </article>
     </section>
@@ -112,7 +111,7 @@
               <option value="all">Tout</option>
             </select>
           </div>
-          <button class="btn secondary toolbar-button has-icon" id="export" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></span><span class="btn-label">Exporter CSV</span></button>
+          <button class="btn secondary toolbar-button has-icon" id="export" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg></span><span class="btn-label">Exporter CSV</span></button>
         </div>
         <div class="metrics summary-metrics">
           <div class="metric"><span>Trajets</span><b id="sTrips">0</b></div>
@@ -124,13 +123,13 @@
         <div id="personSummary" class="summary-list"></div>
       </article>
 
-      <div id="paymentFormHome" hidden>
-        <form id="paymentForm" class="inline-payment" aria-label="Enregistrer un versement" novalidate>
-          <div class="field"><label for="payAmount">Montant (€)</label><input id="payAmount" type="text" inputmode="decimal" autocomplete="off" placeholder="ex. 50" required></div>
-          <div class="field"><label for="payDate">Date du versement</label><input id="payDate" type="date" autocomplete="off" required></div>
+      <div id="paymentFormHome" hidden="">
+        <form id="paymentForm" class="inline-payment" aria-label="Enregistrer un versement" novalidate="">
+          <div class="field"><label for="payAmount">Montant (€)</label><input id="payAmount" type="text" inputmode="decimal" autocomplete="off" placeholder="ex. 50" required=""></div>
+          <div class="field"><label for="payDate">Date du versement</label><input id="payDate" type="date" autocomplete="off" required=""></div>
           <p id="paymentError" class="small payment-error" role="alert"></p>
-          <button class="btn primary has-icon" id="addPayment" type="submit"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"/></svg></span><span class="btn-label">Enregistrer le versement</span></button>
-          <button class="btn secondary" id="cancelPayment" type="button">Annuler</button>
+          <button class="btn primary has-icon" id="addPayment" type="submit"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"></path></svg></span><span class="btn-label">Enregistrer le versement</span></button>
+          <button class="btn secondary has-icon" id="cancelPayment" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m6 6 12 12M18 6 6 18"></path></svg></span><span class="btn-label">Annuler</span></button>
         </form>
       </div>
 
@@ -166,7 +165,7 @@
         <div class="field"><label for="vehicleCostPerKm">Coût véhicule / km (€/km)</label><input id="vehicleCostPerKm" type="number" min="0" max="10" step="0.001" inputmode="decimal"></div>
         <p class="small energy-help" id="vehicleCostHelp">Ce coût couvre notamment l’usure, l’entretien et la décote du véhicule.</p>
         <p class="small energy-help" id="energyHelp">Le calcul utilise la consommation en L/100 km et le prix en €/L.</p>
-        <button class="btn primary has-icon" id="saveSettings" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"/></svg></span><span class="btn-label">Enregistrer les réglages</span></button>
+        <button class="btn primary has-icon" id="saveSettings" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"></path></svg></span><span class="btn-label">Enregistrer les réglages</span></button>
         <div class="tariff-section">
           <h3 class="subsection-title">Tarifs enregistrés</h3>
           <div id="rates"></div>
@@ -176,21 +175,21 @@
 
       <article class="card content-card">
         <h2 class="date">Passagers</h2>
-        <button class="btn secondary has-icon" id="addPerson" type="button" aria-expanded="false" aria-controls="personEditor"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 5v14M5 12h14"/></svg></span><span class="btn-label">Ajouter un passager</span></button>
+        <button class="btn secondary has-icon" id="addPerson" type="button" aria-expanded="false" aria-controls="personEditor"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 5v14M5 12h14"></path></svg></span><span class="btn-label">Ajouter un passager</span></button>
         <div id="personAddSlot"></div>
-        <div id="personEditorHome" hidden>
-          <form id="personEditor" class="person-editor" novalidate>
-            <div class="field"><label for="personEditorName">Prénom ou nom</label><input id="personEditorName" maxlength="40" autocomplete="off" autocapitalize="words" required></div>
+        <div id="personEditorHome" hidden="">
+          <form id="personEditor" class="person-editor" novalidate="">
+            <div class="field"><label for="personEditorName">Prénom ou nom</label><input id="personEditorName" maxlength="40" autocomplete="off" autocapitalize="words" required=""></div>
             <p id="personEditorError" class="small payment-error" role="alert"></p>
-            <div id="personDuplicates" class="person-duplicates" hidden></div>
-            <button id="savePerson" class="btn primary has-icon" type="submit"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"/></svg></span><span class="btn-label">Ajouter</span></button>
-            <button id="cancelPerson" class="btn secondary" type="button">Annuler</button>
+            <div id="personDuplicates" class="person-duplicates" hidden=""></div>
+            <button id="savePerson" class="btn primary has-icon" type="submit"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"></path></svg></span><span class="btn-label">Ajouter</span></button>
+            <button id="cancelPerson" class="btn secondary has-icon" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m6 6 12 12M18 6 6 18"></path></svg></span><span class="btn-label">Annuler</span></button>
           </form>
         </div>
-        <div id="activePeopleSettings" class="people-settings-list"></div>
-        <p class="small">Les passagers archivés disparaissent de l’écran du trajet, mais leur historique et leurs versements sont conservés.</p>
+        <h3 class="subsection-title active-people-title" id="activePeopleHeading">Passagers actifs · 0</h3><div id="activePeopleSettings" class="people-settings-list"></div>
+        
         <details id="archivedPeopleSection" class="archived-section hidden">
-          <summary>Passagers archivés <span id="archivedCount"></span></summary>
+          <summary>Passagers archivés <span id="archivedCount"></span></summary><p class="small">Les passagers archivés disparaissent de l’écran du trajet, mais leur historique et leurs versements sont conservés.</p>
           <div id="archivedPeopleSettings"></div>
         </details>
       </article>
@@ -200,9 +199,9 @@
         <p class="small">La sauvegarde contient les trajets, versements, passagers et réglages. Sur iPhone, vous pouvez enregistrer le fichier dans iCloud Drive.</p>
         <div id="backupStatus" class="backup-status" role="status"></div>
         <div class="actions data-actions">
-          <button class="btn primary has-icon" id="backupData" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></span><span class="btn-label">Sauvegarder mes données</span></button>
+          <button class="btn primary has-icon" id="backupData" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg></span><span class="btn-label">Sauvegarder mes données</span></button>
           <div class="file-picker">
-            <span class="btn primary has-icon file-picker-face" aria-hidden="true"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg></span><span class="btn-label">Restaurer une sauvegarde</span></span>
+            <span class="btn primary has-icon file-picker-face" aria-hidden="true"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"></path></svg></span><span class="btn-label">Restaurer une sauvegarde</span></span>
             <input accept="application/json,.json" id="restoreFile" type="file" aria-label="Restaurer une sauvegarde Covoiturage">
           </div>
         </div>
@@ -215,13 +214,14 @@
         <div class="privacy-note">
         <h3 class="subsection-title">Confidentialité</h3>
         <p class="small">Les trajets, versements et réglages restent sur cet appareil. L’application n’envoie pas ces données vers un serveur.</p>
-        <div class="version-badge">Version 51 · Liquid Glass</div>
+        <div class="version-badge">Version 53 · Liquid Glass</div>
         </div>
       </article>
     </section>
 
     <footer class="footer">Données enregistrées localement sur cet appareil.</footer>
   </main>
-</body>
-</html>
 
+
+
+</body></html>

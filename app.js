@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 51;
+const APP_VERSION = 53;
 const STORAGE_KEY = 'covoiturageData';
 const MAX_BACKUP_SIZE = 20_000_000;
 const MAX_PEOPLE = 30;
@@ -573,6 +573,7 @@ function updateVehicleCostHelp(){
 }
 
 function renderPeopleSettings(){
+  $('#activePeopleHeading').textContent=`Passagers actifs · ${activePeopleIndices().length}`;
   $('#personEditorHome').append($('#personEditor'));
   const active=activePeopleIndices();
   $('#activePeopleSettings').innerHTML=active.length?active.map(i=>`<div class="person-management-row"><strong class="person-management-name">${escapeHTML(personName(i))}</strong><div class="person-management-actions"><button class="btn secondary compact has-icon edit-person" type="button" data-person-index="${i}" aria-expanded="false" aria-controls="person-edit-slot-${i}" aria-label="Modifier ${escapeHTML(personName(i))}">${UI_ICONS.edit}<span class="btn-label">Modifier</span></button><button class="btn secondary compact has-icon archive-person" type="button" data-person-index="${i}" aria-label="Archiver ${escapeHTML(personName(i))}">${UI_ICONS.archive}<span class="btn-label">Archiver</span></button></div><div id="person-edit-slot-${i}"></div></div>`).join(''):'<p class="small">Aucun passager actif.</p>';
@@ -918,3 +919,19 @@ if('serviceWorker' in navigator){
   }).catch(()=>flash('Le mode hors ligne n’a pas pu être préparé. Réessayez avec une connexion.'));
 }
 
+
+(function installStandaloneZoomPolicy(){
+  const standalone=matchMedia('(display-mode: standalone)'),viewport=document.querySelector('meta[name="viewport"]');
+  const normalViewport=viewport.content;
+  const installed=()=>standalone.matches||navigator.standalone===true;
+  const update=()=>{
+    const active=installed();document.documentElement.classList.toggle('pwa-installed',active);
+    viewport.content=active?normalViewport+',maximum-scale=1,user-scalable=no':normalViewport;
+  };
+  update();standalone.addEventListener?.('change',update);
+  window.addEventListener('pageshow',update);
+  // Safari gesture events target pinch zoom only. Normal taps, selection and scroll remain native.
+  for(const name of ['gesturestart','gesturechange'])document.addEventListener(name,event=>{
+    if(installed()&&event.cancelable)event.preventDefault();
+  },{passive:false});
+})();
