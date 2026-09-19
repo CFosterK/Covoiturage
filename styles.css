@@ -330,7 +330,6 @@ html.pwa-installed,html.pwa-installed body{touch-action:pan-x pan-y}
 /* Passenger blocks retained; buttons use their original V51 appearance. */
 :root{--passenger-surface:rgba(232,239,248,.94)}
 html[data-theme="dark"]{--passenger-surface:rgba(37,48,62,.94)}
-.active-people-title{margin-top:22px;margin-bottom:12px}
 .person-management-row{padding:16px;margin:12px 0;border:1px solid var(--hairline);border-radius:20px;background:var(--passenger-surface)}
 .person-management-row:last-child{margin-bottom:0}
 .person-management-name{margin-bottom:12px}
@@ -338,3 +337,12 @@ html[data-theme="dark"]{--passenger-surface:rgba(37,48,62,.94)}
 .person-management-actions .btn{min-width:110px}
 .person-management-row .person-editor{margin-bottom:0}
 @media(max-width:360px){.person-management-row{padding:12px}.person-management-actions .btn{min-width:100px;padding-left:8px;padding-right:8px}}
+
+/* V54: each balance passenger contains its own payment action and form. */
+.summary-entry,.summary-entry:last-child{padding:16px;margin:12px 0;border:1px solid var(--hairline);border-radius:20px;background:var(--passenger-surface)}
+.summary-entry:last-child{margin-bottom:0}
+.summary-entry .summaryPerson{padding-top:0;flex-wrap:wrap}
+.summary-entry .summaryPerson>span:first-child{flex:1 1 150px}
+.summary-entry .summaryPerson>span:last-child{flex:0 1 auto;max-width:100%;overflow-wrap:anywhere}
+.summary-entry .inline-payment{margin-bottom:0}
+@media(max-width:360px){.summary-entry,.summary-entry:last-child{padding:12px}.summary-entry .summaryPerson>span:last-child{flex-basis:100%;text-align:left}}
