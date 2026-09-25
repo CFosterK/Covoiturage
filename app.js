@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 57;
+const APP_VERSION = 58;
 const STORAGE_KEY = 'covoiturageData';
 const MAX_BACKUP_SIZE = 20_000_000;
 const MAX_PEOPLE = 30;
@@ -242,6 +242,7 @@ function calcToday(){
 }
 
 function renderTripMode(){
+  syncDateDisplays();
   const original=editingTrip();
   $('#tripTitle').textContent=original?'Modifier le trajet':'Trajet';
   $('#saveTripLabel').textContent=original?'Enregistrer les modifications':'Enregistrer le trajet';
@@ -305,7 +306,39 @@ function addTrip(){
   if(saveData()){ renderAll(); flash('Nouveau trajet enregistré ✓'); }
 }
 
+
+function upperFirst(text){return text.replace(/^./,letter=>letter.toLocaleUpperCase('fr-FR'));}
+function fullDate(value){
+  const date=value instanceof Date?value:new Date(value+'T12:00:00');
+  return Number.isNaN(date.getTime())?'':upperFirst(date.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}));
+}
+function fullMonth(value){
+  return /^[1-9]\d{3}-(0[1-9]|1[0-2])$/.test(value)?upperFirst(new Date(value+'-01T12:00:00').toLocaleDateString('fr-FR',{month:'long',year:'numeric'})):'';
+}
+function syncDateDisplays(){
+  document.querySelectorAll('.formatted-date').forEach(wrapper=>{
+    const input=wrapper.querySelector('input'),label=wrapper.querySelector('.formatted-date-label');
+    const text=input.type==='month'?fullMonth(input.value):(safeDate(input.value,null)?fullDate(input.value):'');
+    label.textContent=text||(input.type==='month'?'Choisir un mois':'Choisir une date');
+    wrapper.classList.toggle('date-empty',!text);
+  });
+}
+function installDateDisplays(){
+  document.querySelectorAll('input[type="date"],input[type="month"]').forEach(input=>{
+    if(!['date','month'].includes(input.type))return; // Native text fallback remains editable.
+    const wrapper=document.createElement('div'),label=document.createElement('span');
+    wrapper.className='formatted-date';label.className='formatted-date-label';label.setAttribute('aria-hidden','true');
+    input.before(wrapper);wrapper.append(input,label);
+    input.addEventListener('input',syncDateDisplays);input.addEventListener('change',syncDateDisplays);
+    input.addEventListener('blur',syncDateDisplays);
+    input.addEventListener('click',()=>{try{input.showPicker?.();}catch{/* The native control remains usable. */}});
+  });
+  document.addEventListener('reset',()=>setTimeout(syncDateDisplays,0));
+  syncDateDisplays();
+}
+
 function renderHistoryFilter(prefix){
+  syncDateDisplays();
   const select=$(`#${prefix}Person`), previous=select.value||'all';
   select.innerHTML='<option value="all">Tous les passagers</option>'+data.people.map((name,i)=>`<option value="${i}">${escapeHTML(name)}${isArchived(i)?' (archivé)':''}</option>`).join('');
   select.value=previous==='all'||data.people[Number(previous)]!==undefined?previous:'all';
@@ -325,14 +358,14 @@ function historyDateRange(prefix){
   if(mode==='month'){
     const month=$(`#${prefix}Month`).value;
     if(!/^[1-9]\d{3}-(0[1-9]|1[0-2])$/.test(month)) return null;
-    return {start:`${month}-01`,end:`${month}-31`,label:new Date(`${month}-01T12:00:00`).toLocaleDateString('fr-FR',{month:'long',year:'numeric'})};
+    return {start:`${month}-01`,end:`${month}-31`,label:fullMonth(month)};
   }
   const date=safeDate($(`#${prefix}Week`).value,null);
   if(!date) return null;
   const monday=new Date(`${date}T12:00:00`);
   monday.setDate(monday.getDate()-((monday.getDay()+6)%7));
   const sunday=new Date(monday);sunday.setDate(sunday.getDate()+6);
-  const format=d=>d.toLocaleDateString('fr-FR');
+  const format=d=>fullDate(d);
   return {start:localISO(monday),end:localISO(sunday),label:`Du ${format(monday)} au ${format(sunday)}`};
 }
 
@@ -392,10 +425,10 @@ function renderHistory(){
   const groups=new Map();
   trips.forEach(t=>{const month=t.date.slice(0,7);if(!groups.has(month))groups.set(month,[]);groups.get(month).push(t);});
   $('#historyList').innerHTML=trips.length?[...groups].map(([month,items])=>{
-    const monthLabel=new Date(`${month}-01T12:00:00`).toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+    const monthLabel=fullMonth(month);
     return `<section class="history-month"><h2 class="month-title">${escapeHTML(monthLabel)}</h2>${items.map(t=>{
       const names=t.noTrip?'Aucun trajet':t.people.length?t.people.map(personName).join(', '):'Sans passager';
-      const dateLabel=new Date(`${t.date}T12:00:00`).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).replace(/^./,letter=>letter.toLocaleUpperCase('fr-FR'));
+      const dateLabel=fullDate(t.date);
       const energy=t.energyType==='electric'?'kWh':'L';
       const snapshot=t.noTrip?'Ancien enregistrement sans trajet.':[
         `${t.people.length} passager(s) · ${euro(t.rate)} par passager`,
@@ -415,6 +448,7 @@ function summaryRecords(records){
 function filteredTrips(){return summaryRecords(data.trips);}
 function filteredPayments(){return summaryRecords(data.payments);}
 function renderSummaryFilter(){
+  syncDateDisplays();
   const mode=$('#summaryPeriod').value;
   for(const [value,suffix] of [['year','Year'],['month','Month'],['week','Week']])$('#summary'+suffix+'Field').classList.toggle('hidden',mode!==value);
 }
@@ -436,7 +470,7 @@ function renderPayments(){
   const payments=historyRecords('payments').sort((a,b)=>b.date.localeCompare(a.date));
   renderHistoryStatus('payments',payments.length,data.payments.length);
   $('#clearPayments').disabled=!data.payments.length;
-  $('#paymentHistory').innerHTML=payments.length?`<div class="small payment-caption">Versements · ${Math.min(paymentDisplayLimit,payments.length)} sur ${payments.length}${$('#paymentsPeriod').value==='all'?' (toutes périodes)':''}</div>${payments.slice(0,paymentDisplayLimit).map(p=>`<div class="payment-item"><span>${escapeHTML(personName(p.person))}${isArchived(p.person)?'<span class="archive-tag">archivé</span>':''}<br><span class="small">${escapeHTML(new Date(`${p.date}T12:00:00`).toLocaleDateString('fr-FR'))}</span></span><span class="payment-value"><b>${paymentEuro(p.amount)}</b><button class="btn danger compact has-icon delete-payment" type="button" aria-label="Supprimer ce versement" data-id="${p.id}">${UI_ICONS.trash}<span class="btn-label">Supprimer</span></button></span></div>`).join('')}${payments.length>paymentDisplayLimit?'<button type="button" class="btn secondary" id="morePayments">Afficher les versements suivants</button>':''}`:'<p class="small">Aucun versement pour ces filtres.</p>';
+  $('#paymentHistory').innerHTML=payments.length?`<div class="small payment-caption">Versements · ${Math.min(paymentDisplayLimit,payments.length)} sur ${payments.length}${$('#paymentsPeriod').value==='all'?' (toutes périodes)':''}</div>${payments.slice(0,paymentDisplayLimit).map(p=>`<div class="payment-item"><span>${escapeHTML(personName(p.person))}${isArchived(p.person)?'<span class="archive-tag">archivé</span>':''}<br><span class="small">${escapeHTML(fullDate(p.date))}</span></span><span class="payment-value"><b>${paymentEuro(p.amount)}</b><button class="btn danger compact has-icon delete-payment" type="button" aria-label="Supprimer ce versement" data-id="${p.id}">${UI_ICONS.trash}<span class="btn-label">Supprimer</span></button></span></div>`).join('')}${payments.length>paymentDisplayLimit?'<button type="button" class="btn secondary" id="morePayments">Afficher les versements suivants</button>':''}`:'<p class="small">Aucun versement pour ces filtres.</p>';
 }
 
 function renderSummary(){
@@ -473,6 +507,7 @@ function renderSummary(){
 }
 
 function mountPaymentForm(){
+  syncDateDisplays();
   if(activePaymentPerson===null) return;
   const slot=$(`#payment-slot-${activePaymentPerson}`);
   if(!slot){closePayment();return;}
@@ -597,7 +632,7 @@ function renderBackupStatus(){
     return;
   }
   const date=new Date(data.lastBackupAt), age=Math.max(0,Math.floor((Date.now()-date.getTime())/86400000));
-  const label=date.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+  const label=fullDate(date);
   el.textContent=age>BACKUP_REMINDER_DAYS?`Dernière sauvegarde : ${label} (${age} jours). Pensez à en créer une nouvelle.`:`Dernière sauvegarde : ${label}${age===0?' (aujourd’hui)':` · il y a ${age} jour${age>1?'s':''}`}.`;
   if(age>BACKUP_REMINDER_DAYS) el.classList.add('warning');
 }
@@ -940,6 +975,7 @@ installKeyboardNavigation();
 applyTheme();
 renderAll();
 installVisualFeedback();
+installDateDisplays();
 if(storageProblem) alert(storageProblem+' Aucune donnée originale n’a été remplacée. Consultez la rubrique Sauvegarde dans Réglages.');
 
 if('serviceWorker' in navigator){
