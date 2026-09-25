@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 56;
+const APP_VERSION = 57;
 const STORAGE_KEY = 'covoiturageData';
 const MAX_BACKUP_SIZE = 20_000_000;
 const MAX_PEOPLE = 30;
@@ -633,6 +633,7 @@ function selectTab(tab){
     button.classList.toggle('active',active);
     button.setAttribute('aria-selected',String(active));
   });
+  updateNavigationIndicator();
   ['today','history','summary','settings'].forEach(id=>$('#'+id).classList.toggle('hidden',id!==tab));
   if(tab==='summary') renderSummary();
   if(tab==='settings') renderSettings();
@@ -898,15 +899,47 @@ $('#paymentHistory').addEventListener('click',event=>{
 });
 
 document.addEventListener('click',event=>{
-  const button=event.target.closest('button'); if(!button || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const button=event.target.closest('button'); if(!button || button.classList.contains('tab') || button.disabled || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   button.animate([{transform:'scale(1)'},{transform:'scale(.97)'},{transform:'scale(1)'}],{duration:180,easing:'ease-out'});
 });
+
+
+// A single indicator follows only accepted navigation changes.
+function updateNavigationIndicator(instant=false){
+  const nav=$('.glass-nav'),active=nav.querySelector('.tab.active'),indicator=nav.querySelector('.nav-indicator');
+  if(!indicator||!active) return;
+  if(instant) indicator.style.transition='none';
+  indicator.style.width=active.offsetWidth+'px';indicator.style.height=active.offsetHeight+'px';
+  indicator.style.top=active.offsetTop+'px';indicator.style.transform='translateX('+active.offsetLeft+'px)';
+  if(instant){void indicator.offsetWidth;indicator.style.transition='';}
+}
+function installVisualFeedback(){
+  const nav=$('.glass-nav'),indicator=document.createElement('span');
+  indicator.className='nav-indicator';indicator.setAttribute('aria-hidden','true');nav.prepend(indicator);
+  updateNavigationIndicator(true);
+  if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>updateNavigationIndicator(true)).observe(nav);
+  window.addEventListener('resize',()=>updateNavigationIndicator(true));
+  let keyboardHidden=document.body.classList.contains('keyboard-editing');
+  new MutationObserver(()=>{
+    const hidden=document.body.classList.contains('keyboard-editing');
+    if(hidden!==keyboardHidden){keyboardHidden=hidden;updateNavigationIndicator(true);}
+  }).observe(document.body,{attributes:true,attributeFilter:['class']});
+  const motion=matchMedia('(prefers-reduced-motion: reduce)');
+  motion.addEventListener?.('change',()=>{updateNavigationIndicator(true);if(motion.matches)$$('.person').forEach(e=>e.getAnimations?.().forEach(a=>a.cancel()));});
+  // Checkbox change occurs once for both label clicks and keyboard activation.
+  $('#people').addEventListener('change',event=>{
+    const input=event.target;if(!input.matches('input[data-person]')||input.disabled||motion.matches)return;
+    const row=input.closest('.person');row.getAnimations?.().forEach(a=>a.cancel());
+    row.animate([{transform:'scale(1)'},{transform:'scale(.97)'},{transform:'scale(1)'}],{duration:180,easing:'ease-out'});
+  });
+}
 
 initHistoryFilters();
 initSummaryFilters();
 installKeyboardNavigation();
 applyTheme();
 renderAll();
+installVisualFeedback();
 if(storageProblem) alert(storageProblem+' Aucune donnée originale n’a été remplacée. Consultez la rubrique Sauvegarde dans Réglages.');
 
 if('serviceWorker' in navigator){

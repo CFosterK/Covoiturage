@@ -361,3 +361,11 @@ html[data-theme="dark"]{--passenger-surface:rgba(37,48,62,.94)}
 .history-switch .btn{flex:1;min-width:0}
 .history-switch [aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
 #tripsHistoryCard[hidden],#paymentsHistoryCard[hidden]{display:none}
+
+/* V57: consistent names and a single moving navigation highlight. */
+.person>span,.summary-person-name,.person-management-name{font-family:inherit;font-size:18px;font-weight:750;line-height:1.3}
+.glass-nav .tab{position:relative;z-index:1;transform:none}
+.glass-nav .tab.active{background:transparent;box-shadow:none}
+.glass-nav .tab.active .tab-icon{transform:none}
+.nav-indicator{position:absolute;left:0;pointer-events:none;z-index:0;border-radius:19px;background:linear-gradient(180deg,var(--glass-strong),var(--accent-soft));box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 6px 18px rgba(26,54,92,.10);transition:transform 250ms ease-out}
+@media(prefers-reduced-motion:reduce){.nav-indicator{transition:none}}
