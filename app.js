@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 54;
+const APP_VERSION = 55;
 const STORAGE_KEY = 'covoiturageData';
 const MAX_BACKUP_SIZE = 20_000_000;
 const MAX_PEOPLE = 30;
@@ -359,7 +359,7 @@ function clearWholeHistory(kind){
   const trips=kind==='trips';
   const noun=trips?'trajet(s)':'versement(s)';
   const other=trips?'Les versements et les passagers seront conservés.':'Les trajets et les passagers seront conservés.';
-  if(!confirm(`Supprimer définitivement les ${count} ${noun} de tout l’historique, y compris ceux masqués par les filtres ?\n\n${other} Les montants du bilan seront mis à jour. Cette action est irréversible. Pensez à sauvegarder vos données avant de continuer.`)) return;
+  if(!confirm(`Supprimer définitivement les ${count} ${noun} de tout l’historique, y compris ceux masqués par les filtres ?\n\n${other} Les soldes seront mis à jour. Cette action est irréversible. Pensez à sauvegarder vos données avant de continuer.`)) return;
   data[kind]=[];
   if(saveData()){
     if(trips&&editingTripId) finishEditing();
@@ -408,28 +408,26 @@ function renderHistory(){
   }).join(''):`<p class="small">${data.trips.length?'Aucun trajet pour ces filtres.':'Aucun trajet enregistré.'}</p>`;
 }
 
-function filteredTrips(){
-  const now=new Date(), mode=$('#period').value;
-  return data.trips.filter(t=>{
-    const d=new Date(`${t.date}T12:00:00`);
-    if(mode==='all') return true;
-    if(mode==='month') return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
-    const start=new Date(now); start.setHours(0,0,0,0); start.setDate(now.getDate()-((now.getDay()+6)%7));
-    const end=new Date(start); end.setDate(start.getDate()+7);
-    return d>=start&&d<end;
-  });
+function summaryRecords(records){
+  const range=historyDateRange('summary');
+  return range?records.filter(r=>!range.start||(r.date>=range.start&&r.date<=range.end)):[];
 }
-
-function filteredPayments(){
-  const now=new Date(), mode=$('#period').value;
-  return data.payments.filter(p=>{
-    const d=new Date(`${p.date}T12:00:00`);
-    if(mode==='all') return true;
-    if(mode==='month') return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
-    const start=new Date(now); start.setHours(0,0,0,0); start.setDate(now.getDate()-((now.getDay()+6)%7));
-    const end=new Date(start); end.setDate(start.getDate()+7);
-    return d>=start&&d<end;
-  });
+function filteredTrips(){return summaryRecords(data.trips);}
+function filteredPayments(){return summaryRecords(data.payments);}
+function renderSummaryFilter(){
+  const mode=$('#summaryPeriod').value;
+  for(const [value,suffix] of [['year','Year'],['month','Month'],['week','Week']])$('#summary'+suffix+'Field').classList.toggle('hidden',mode!==value);
+}
+function initSummaryFilters(){
+  $('#summaryPeriod').value='all';
+  $('#summaryYear').value=getToday().slice(0,4);$('#summaryMonth').value=getToday().slice(0,7);$('#summaryWeek').value=getToday();
+  const update=()=>{closePayment();renderSummary();};
+  for(const suffix of ['Period','Year','Month','Week'])$('#summary'+suffix).addEventListener('change',update);
+  $('#resetSummaryFilters').addEventListener('click',()=>{$('#summaryPeriod').value='all';update();});
+  $$('[data-history-view]').forEach(button=>button.addEventListener('click',()=>{
+    const trips=button.dataset.historyView==='trips';$('#tripsHistoryCard').hidden=!trips;$('#paymentsHistoryCard').hidden=trips;
+    $$('[data-history-view]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
+  }));
 }
 
 let paymentDisplayLimit=8;
@@ -442,13 +440,14 @@ function renderPayments(){
 }
 
 function renderSummary(){
+  renderSummaryFilter();
   // Keep the live form and its draft when rebuilding rows, including save rollback.
   const paymentForm=$('#paymentForm');
   $('#paymentFormHome').append(paymentForm);
   const archivedOpen=$('#summaryArchivedPeople')?.open||false;
-  $('#summaryScope').textContent=$('#period').value==='all'
+  $('#summaryScope').textContent=!historyDateRange('summary')?'Choisissez une période valide.':$('#summaryPeriod').value==='all'
     ? 'Solde calculé sur tous les trajets et versements enregistrés.'
-    : 'Solde de la période uniquement, sans report antérieur. Choisissez « Tout » pour connaître le solde global.';
+    : 'Solde de la période uniquement, sans report antérieur. Choisissez « Toutes les dates » pour connaître le solde global.';
   const trips=filteredTrips().filter(t=>!t.noTrip);
   const payments=filteredPayments();
   const paidTotal=payments.reduce((sum,p)=>sum+p.amount,0);
@@ -828,7 +827,9 @@ function safeCsvValue(value){
 }
 
 function exportCsv(){
-  const rows=[['Date','Passagers','Nombre','Tarif/passager','Participation prévue','Coût trajet'],...data.trips.map(t=>[t.date,t.people.map(personName).join(' / '),t.people.length,t.rate,t.rate*t.people.length,t.cost.toFixed(2)])];
+  const records=[...data.trips.map(t=>({date:t.date,createdAt:t.createdAt||'',row:t.noTrip?['Sans trajet',t.date,'','','','','','']:['Trajet',t.date,t.people.map(personName).join(' / '),t.people.length,t.rate,t.rate*t.people.length,t.cost.toFixed(2),'']})),...data.payments.map(p=>({date:p.date,createdAt:p.createdAt||'',row:['Versement',p.date,personName(p.person),'','','','',p.amount.toFixed(2)]}))];
+  records.sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt.localeCompare(a.createdAt));
+  const rows=[['Type','Date','Passagers','Nombre','Tarif/passager','Participation prévue','Coût trajet','Montant versé'],...records.map(r=>r.row)];
   const csv='\ufeff'+rows.map(row=>row.map(safeCsvValue).join(';')).join('\n');
   downloadBlob(new Blob([csv],{type:'text/csv;charset=utf-8'}),'covoiturage.csv');
 }
@@ -870,7 +871,7 @@ $('#paymentForm').addEventListener('submit',event=>{event.preventDefault();addPa
 $('#cancelPayment').addEventListener('click',()=>closePayment(true));
 $('#themeMode').addEventListener('change',event=>{data.settings.theme=event.target.value;if(saveData()){applyTheme();flash('Apparence mise à jour ✓');}});
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if((data.settings.theme||'system')==='system')applyTheme();});
-$('#period').addEventListener('change',()=>{closePayment();renderSummary();});
+
 $('#backupData').addEventListener('click',()=>{void backupData().catch(()=>alert('La sauvegarde n’a pas pu être créée. Réessayez.'));});
 $('#restoreFile').addEventListener('change',async event=>{
   const input=event.target, file=input.files&&input.files[0];
@@ -902,6 +903,7 @@ document.addEventListener('click',event=>{
 });
 
 initHistoryFilters();
+initSummaryFilters();
 installKeyboardNavigation();
 applyTheme();
 renderAll();

@@ -1,5 +1,4 @@
-<!doctype html>
-<html lang="fr"><head>
+<!DOCTYPE html><html lang="fr"><head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; media-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
@@ -12,11 +11,11 @@
   <meta name="format-detection" content="telephone=no">
   <meta name="color-scheme" content="light dark">
   <title>Covoiturage</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=54">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=54">
-  <link rel="manifest" href="manifest.webmanifest?v=54">
-  <link rel="stylesheet" href="styles.css?v=54">
-  <script defer="" src="app.js?v=54"></script>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=55">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=55">
+  <link rel="manifest" href="manifest.webmanifest?v=55">
+  <link rel="stylesheet" href="styles.css?v=55">
+  <script defer="" src="app.js?v=55"></script>
 </head>
 <body data-view="today"><div id="status" class="status-toast" role="status" aria-live="polite"></div>
   <div class="ambient" aria-hidden="true"></div>
@@ -34,23 +33,23 @@
         </span>
         <span class="tab-label">Trajet</span>
       </button>
-      <button type="button" class="tab" data-tab="history" role="tab" aria-selected="false" aria-controls="history">
+      <button type="button" class="tab" data-tab="summary" role="tab" aria-selected="false" aria-controls="summary">
+        <span class="tab-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false"><path d="M20 11V8H5a2 2 0 0 1 0-4h10M3 6v13a2 2 0 0 0 2 2h15v-6M18 3v6M15 6h6M20 12h-5v5h5"></path></svg>
+        </span>
+        <span class="tab-label">Versement</span>
+      </button><button type="button" class="tab" data-tab="history" role="tab" aria-selected="false" aria-controls="history">
         <span class="tab-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" focusable="false"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8M3 3v5h5M12 7v5l4 2"></path></svg>
         </span>
         <span class="tab-label">Historique</span>
       </button>
-      <button type="button" class="tab" data-tab="summary" role="tab" aria-selected="false" aria-controls="summary">
-        <span class="tab-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" focusable="false"><path d="M3 3v16a2 2 0 0 0 2 2h16M18 17V9M13 17V5M8 17v-3"></path></svg>
-        </span>
-        <span class="tab-label">Bilan</span>
-      </button>
+      
       <button type="button" class="tab" data-tab="settings" role="tab" aria-selected="false" aria-controls="settings">
         <span class="tab-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" focusable="false"><path d="M12.22 2h-.44a2 2 0 0 0-2 1.72l-.12.88a2 2 0 0 1-1.18 1.52l-.42.24a2 2 0 0 1-1.9.18l-.82-.34a2 2 0 0 0-2.46.87l-.22.38a2 2 0 0 0 .47 2.59l.7.54a2 2 0 0 1 .72 1.78v.48a2 2 0 0 1-.72 1.78l-.7.54a2 2 0 0 0-.47 2.59l.22.38a2 2 0 0 0 2.46.87l.82-.34a2 2 0 0 1 1.9.18l.42.24a2 2 0 0 1 1.18 1.52l.12.88a2 2 0 0 0 2 1.72h.44a2 2 0 0 0 2-1.72l.12-.88a2 2 0 0 1 1.18-1.52l.42-.24a2 2 0 0 1 1.9-.18l.82.34a2 2 0 0 0 2.46-.87l.22-.39a2 2 0 0 0-.47-2.59l-.7-.53a2 2 0 0 1-.72-1.78v-.48a2 2 0 0 1 .72-1.78l.7-.54a2 2 0 0 0 .47-2.59l-.22-.38a2 2 0 0 0-2.46-.87l-.82.34a2 2 0 0 1-1.9-.18l-.42-.24a2 2 0 0 1-1.18-1.52l-.12-.88a2 2 0 0 0-2-1.72Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
         </span>
-        <span class="tab-label">Réglages</span>
+        <span class="tab-label">Réglage</span>
       </button>
     </nav>
 
@@ -79,9 +78,9 @@
       </article>
     </section>
 
-    <section id="history" class="view hidden" role="tabpanel" tabindex="0">
-      <article class="card content-card">
-        <h1 class="date">Historique</h1>
+    <section id="history" class="view hidden" role="tabpanel" tabindex="0"><article class="card content-card"><h1 class="date">Historique</h1><div class="history-switch" role="group" aria-label="Historique affiché"><button type="button" class="btn secondary" data-history-view="trips" aria-pressed="true" aria-controls="tripsHistoryCard">Trajets</button><button type="button" class="btn secondary" data-history-view="payments" aria-pressed="false" aria-controls="paymentsHistoryCard">Versements</button></div><button class="btn secondary toolbar-button has-icon" id="export" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg></span><span class="btn-label">Exporter CSV</span></button></article>
+      <article class="card content-card" id="tripsHistoryCard">
+        <h2 class="date">Historique des trajets</h2>
         <details class="history-filters" id="historyFilters">
           <summary>Filtrer les trajets</summary>
           <div class="history-filter-grid">
@@ -97,22 +96,38 @@
         <div id="historyList"></div>
         <button class="btn danger clear-history" id="clearTrips" type="button">Vider tout l’historique des trajets</button>
       </article>
-    </section>
+    <article class="card content-card" id="paymentsHistoryCard" hidden="">
+        <h2 class="date">Historique des versements</h2>
+        <details class="history-filters" id="paymentsFilters">
+          <summary>Filtrer les versements</summary>
+          <div class="history-filter-grid">
+            <div class="field"><label for="paymentsPerson">Passager</label><select id="paymentsPerson"><option value="all">Tous les passagers</option></select></div>
+            <div class="field"><label for="paymentsPeriod">Période</label><select id="paymentsPeriod"><option value="all">Toutes les dates</option><option value="year">Année</option><option value="month">Mois</option><option value="week">Semaine</option></select></div>
+            <div class="field hidden" id="paymentsYearField"><label for="paymentsYear">Année</label><input id="paymentsYear" type="number" min="1000" max="9999" step="1" inputmode="numeric"></div>
+            <div class="field hidden" id="paymentsMonthField"><label for="paymentsMonth">Mois</label><input id="paymentsMonth" type="month"></div>
+            <div class="field hidden" id="paymentsWeekField"><label for="paymentsWeek">Une date dans la semaine</label><input id="paymentsWeek" type="date"><span class="small">Du lundi au dimanche.</span></div>
+          </div>
+          <button class="btn secondary compact" id="resetPaymentsFilters" type="button">Réinitialiser les filtres</button>
+        </details>
+        <p class="small" id="paymentsFilterStatus" role="status"></p>
+        <div id="paymentHistory" class="payment-history"></div>
+        <button class="btn danger clear-history" id="clearPayments" type="button">Vider tout l’historique des versements</button>
+      </article></section>
 
     <section id="summary" class="view hidden" role="tabpanel" tabindex="0">
       <article class="card content-card">
-        <h1 class="date">Bilan</h1>
-        <div class="row toolbar-row">
-          <div class="field compact-field">
-            <label for="period">Période</label>
-            <select id="period">
-              <option value="month">Mois en cours</option>
-              <option value="week">Semaine en cours</option>
-              <option value="all">Tout</option>
-            </select>
+        <h1 class="date">Versement</h1>
+        <details class="history-filters" id="summaryFilters">
+          <summary>Filtrer par période</summary>
+          <div class="history-filter-grid">
+            
+            <div class="field"><label for="summaryPeriod">Période</label><select id="summaryPeriod"><option value="all">Toutes les dates</option><option value="year">Année</option><option value="month">Mois</option><option value="week">Semaine</option></select></div>
+            <div class="field hidden" id="summaryYearField"><label for="summaryYear">Année</label><input id="summaryYear" type="number" min="1000" max="9999" step="1" inputmode="numeric"></div>
+            <div class="field hidden" id="summaryMonthField"><label for="summaryMonth">Mois</label><input id="summaryMonth" type="month"></div>
+            <div class="field hidden" id="summaryWeekField"><label for="summaryWeek">Une date dans la semaine</label><input id="summaryWeek" type="date"><span class="small">Du lundi au dimanche.</span></div>
           </div>
-          <button class="btn secondary toolbar-button has-icon" id="export" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg></span><span class="btn-label">Exporter CSV</span></button>
-        </div>
+          <button class="btn secondary compact" id="resetSummaryFilters" type="button">Réinitialiser la période</button>
+        </details>
         <div class="metrics summary-metrics">
           <div class="metric"><span>Trajets</span><b id="sTrips">0</b></div>
           <div class="metric"><span>Versements reçus</span><b id="sReceived">0 €</b></div>
@@ -133,23 +148,7 @@
         </form>
       </div>
 
-      <article class="card content-card" id="paymentsHistoryCard">
-        <h2 class="date">Historique des versements</h2>
-        <details class="history-filters" id="paymentsFilters">
-          <summary>Filtrer les versements</summary>
-          <div class="history-filter-grid">
-            <div class="field"><label for="paymentsPerson">Passager</label><select id="paymentsPerson"><option value="all">Tous les passagers</option></select></div>
-            <div class="field"><label for="paymentsPeriod">Période</label><select id="paymentsPeriod"><option value="all">Toutes les dates</option><option value="year">Année</option><option value="month">Mois</option><option value="week">Semaine</option></select></div>
-            <div class="field hidden" id="paymentsYearField"><label for="paymentsYear">Année</label><input id="paymentsYear" type="number" min="1000" max="9999" step="1" inputmode="numeric"></div>
-            <div class="field hidden" id="paymentsMonthField"><label for="paymentsMonth">Mois</label><input id="paymentsMonth" type="month"></div>
-            <div class="field hidden" id="paymentsWeekField"><label for="paymentsWeek">Une date dans la semaine</label><input id="paymentsWeek" type="date"><span class="small">Du lundi au dimanche.</span></div>
-          </div>
-          <button class="btn secondary compact" id="resetPaymentsFilters" type="button">Réinitialiser les filtres</button>
-        </details>
-        <p class="small" id="paymentsFilterStatus" role="status"></p>
-        <div id="paymentHistory" class="payment-history"></div>
-        <button class="btn danger clear-history" id="clearPayments" type="button">Vider tout l’historique des versements</button>
-      </article>
+      
     </section>
 
     <section id="settings" class="view hidden" role="tabpanel" tabindex="0">
@@ -214,7 +213,7 @@
         <div class="privacy-note">
         <h3 class="subsection-title">Confidentialité</h3>
         <p class="small">Les trajets, versements et réglages restent sur cet appareil. L’application n’envoie pas ces données vers un serveur.</p>
-        <div class="version-badge">Version 54 · Liquid Glass</div>
+        <div class="version-badge">Version 55 · Liquid Glass</div>
         </div>
       </article>
     </section>

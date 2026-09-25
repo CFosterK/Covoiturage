@@ -346,3 +346,18 @@ html[data-theme="dark"]{--passenger-surface:rgba(37,48,62,.94)}
 .summary-entry .summaryPerson>span:last-child{flex:0 1 auto;max-width:100%;overflow-wrap:anywhere}
 .summary-entry .inline-payment{margin-bottom:0}
 @media(max-width:360px){.summary-entry,.summary-entry:last-child{padding:12px}.summary-entry .summaryPerson>span:last-child{flex-basis:100%;text-align:left}}
+
+/* V55: accessible passenger choices and history view switch. */
+.people-list{display:flex;flex-wrap:wrap;gap:10px}
+.person,.person:last-child{position:relative;flex:1 1 140px;min-width:0;max-width:100%;padding:12px;border:1px solid var(--hairline);border-radius:18px;background:var(--glass-strong)}
+.person:has(input:checked){background:var(--accent-soft);border-color:var(--accent)}
+.person:has(input:focus-visible){outline:3px solid var(--accent);outline-offset:3px}
+.person:has(input:disabled){opacity:.6;cursor:default}
+.person input{appearance:none;-webkit-appearance:none;width:24px;height:24px;border:2px solid var(--muted);border-radius:50%;background:transparent;display:grid;place-content:center}
+.person input:checked{border-color:var(--accent);background:var(--accent)}
+.person input:checked::after{content:'';width:10px;height:6px;border-left:2px solid #08111e;border-bottom:2px solid #08111e;transform:translateY(-1px) rotate(-45deg)}
+.person span{font-size:16px}
+.history-switch{display:flex;gap:8px;margin:14px 0}
+.history-switch .btn{flex:1;min-width:0}
+.history-switch [aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
+#tripsHistoryCard[hidden],#paymentsHistoryCard[hidden]{display:none}
