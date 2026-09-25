@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 55;
+const APP_VERSION = 56;
 const STORAGE_KEY = 'covoiturageData';
 const MAX_BACKUP_SIZE = 20_000_000;
 const MAX_PEOPLE = 30;
