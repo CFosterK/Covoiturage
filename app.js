@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 6;
+const APP_VERSION = 7;
 const DATA_FORMAT = 'covoiturage-itineraires';
 const SCHEMA_VERSION = 3;
 const STORAGE_KEY = 'covoiturageItinerairesDataV1';
