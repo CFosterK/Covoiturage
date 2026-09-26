@@ -1,0 +1,225 @@
+<!DOCTYPE html><html lang="fr"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; media-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#0b1017">
+  <meta name="application-name" content="Covoiturage">
+  <meta name="description" content="Gérez vos itinéraires, trajets et versements de covoiturage sur cet appareil.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Covoiturage">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="color-scheme" content="light dark">
+  <title>Covoiturage</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=5">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=5">
+  <link rel="manifest" href="manifest.webmanifest?v=5">
+  <link rel="stylesheet" href="styles.css?v=5">
+  <script defer="" src="app.js?v=5"></script>
+</head>
+<body data-view="today"><div id="status" class="status-toast" role="status" aria-live="polite"></div>
+  <div class="ambient" aria-hidden="true"></div>
+
+  <header class="top">
+    <img class="app-banner" src="banner.png" alt="Covoiturage">
+    
+  </header>
+
+  <main class="app-shell" id="app">
+    <nav class="tabs glass-nav" aria-label="Navigation principale" role="tablist">
+      <button type="button" class="tab active" data-tab="today" role="tab" aria-selected="true" aria-controls="today">
+        <span class="tab-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"></path></svg>
+        </span>
+        <span class="tab-label">Trajet</span>
+      </button>
+      <button type="button" class="tab" data-tab="summary" role="tab" aria-selected="false" aria-controls="summary">
+        <span class="tab-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false"><path d="M20 11V8H5a2 2 0 0 1 0-4h10M3 6v13a2 2 0 0 0 2 2h15v-6M18 3v6M15 6h6M20 12h-5v5h5"></path></svg>
+        </span>
+        <span class="tab-label">Versement</span>
+      </button><button type="button" class="tab" data-tab="history" role="tab" aria-selected="false" aria-controls="history">
+        <span class="tab-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8M3 3v5h5M12 7v5l4 2"></path></svg>
+        </span>
+        <span class="tab-label">Historique</span>
+      </button>
+      
+      <button type="button" class="tab" data-tab="settings" role="tab" aria-selected="false" aria-controls="settings">
+        <span class="tab-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false"><path d="M12.22 2h-.44a2 2 0 0 0-2 1.72l-.12.88a2 2 0 0 1-1.18 1.52l-.42.24a2 2 0 0 1-1.9.18l-.82-.34a2 2 0 0 0-2.46.87l-.22.38a2 2 0 0 0 .47 2.59l.7.54a2 2 0 0 1 .72 1.78v.48a2 2 0 0 1-.72 1.78l-.7.54a2 2 0 0 0-.47 2.59l.22.38a2 2 0 0 0 2.46.87l.82-.34a2 2 0 0 1 1.9.18l.42.24a2 2 0 0 1 1.18 1.52l.12.88a2 2 0 0 0 2 1.72h.44a2 2 0 0 0 2-1.72l.12-.88a2 2 0 0 1 1.18-1.52l.42-.24a2 2 0 0 1 1.9-.18l.82.34a2 2 0 0 0 2.46-.87l.22-.39a2 2 0 0 0-.47-2.59l-.7-.53a2 2 0 0 1-.72-1.78v-.48a2 2 0 0 1 .72-1.78l.7-.54a2 2 0 0 0 .47-2.59l-.22-.38a2 2 0 0 0-2.46-.87l-.82.34a2 2 0 0 1-1.9-.18l-.42-.24a2 2 0 0 1-1.18-1.52l-.12-.88a2 2 0 0 0-2-1.72Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        </span>
+        <span class="tab-label">Réglage</span>
+      </button>
+    </nav>
+
+    <section id="today" class="view" role="tabpanel" tabindex="0">
+      <article class="card content-card">
+        <h1 class="date" id="tripTitle">Trajet</h1>
+        <p id="editNotice" class="edit-notice hidden" role="status"></p>
+        <div class="field">
+          <label for="tripDate">Date du trajet</label>
+          <input id="tripDate" type="date" autocomplete="off">
+        </div>
+        <div class="route-panel"><button id="routeToggle" class="btn secondary route-toggle" type="button" aria-expanded="false" aria-controls="routePanel"><span id="routeTitle">Choisir un itinéraire</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button><div id="routePanel" hidden><div class="field"><label for="tripRoute">Itinéraire</label><select id="tripRoute"></select></div><p id="routeEstimate" class="small"></p><p class="small">L’aller-retour suppose un retour identique à l’aller.</p><button id="validateRoute" type="button" class="btn primary has-icon"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"/></svg></span><span class="btn-label">Valider</span></button><button id="cancelRoute" type="button" class="btn secondary has-icon"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg></span><span class="btn-label">Annuler</span></button></div><div id="noRoutes"><p class="small">Ajoutez ou réactivez un itinéraire pour enregistrer un trajet.</p><button id="createFirstRoute" type="button" aria-expanded="false" aria-controls="routeEditor" class="btn secondary has-icon"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 5v14M5 12h14"/></svg></span><span class="btn-label">Ajouter un itinéraire</span></button></div><div id="tripRouteAddSlot"></div></div><button class="btn secondary has-icon" id="addTripPerson" type="button" aria-expanded="false" aria-controls="personEditor"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 5v14M5 12h14"/></svg></span><span class="btn-label">Ajouter un passager</span></button><div id="tripPersonAddSlot"></div><div id="people" class="people-list"></div><p class="small payment-error" id="capacityError" role="alert"></p>
+      </article>
+
+      <article class="card content-card action-card">
+        <div class="metrics">
+          <div class="metric"><span>Passagers</span><b id="count">0</b></div>
+          <div class="metric"><span>Part conducteur estimée</span><b id="perPerson">0 €</b></div>
+          <div class="metric"><span>Participation prévue</span><b id="received">0 €</b></div>
+          <div class="metric"><span>Coût trajet</span><b id="tripCost">0 €</b></div>
+        </div>
+        <div class="actions">
+          <button class="btn primary has-icon" id="save" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"></path></svg></span><span class="btn-label" id="saveTripLabel">Enregistrer le trajet</span></button>
+          <button class="btn secondary hidden has-icon" id="cancelEdit" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m6 6 12 12M18 6 6 18"></path></svg></span><span class="btn-label">Annuler la modification</span></button>
+        </div>
+      </article>
+    </section>
+
+    <section id="history" class="view hidden" role="tabpanel" tabindex="0"><article class="card content-card"><h1 class="date">Historique</h1><div class="history-switch" role="group" aria-label="Historique affiché"><button type="button" class="btn secondary" data-history-view="trips" aria-pressed="true" aria-controls="tripsHistoryCard">Trajets</button><button type="button" class="btn secondary" data-history-view="payments" aria-pressed="false" aria-controls="paymentsHistoryCard">Versements</button></div><button class="btn secondary toolbar-button has-icon" id="export" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg></span><span class="btn-label">Exporter CSV</span></button></article>
+      <article class="card content-card" id="tripsHistoryCard">
+        <h2 class="date">Historique des trajets</h2>
+        <details class="history-filters" id="historyFilters">
+          <summary>Filtrer les trajets</summary>
+          <div class="history-filter-grid">
+            <div class="field"><label for="historyPerson">Passager</label><select id="historyPerson"><option value="all">Tous les passagers</option></select></div>
+            <div class="field"><label for="historyRoute">Itinéraire</label><select id="historyRoute"><option value="all">Tous les itinéraires</option></select></div><div class="field"><label for="historyPeriod">Période</label><select id="historyPeriod"><option value="all">Toutes les dates</option><option value="year">Année</option><option value="month">Mois</option><option value="week">Semaine</option></select></div>
+            <div class="field hidden" id="historyYearField"><label for="historyYear">Année</label><input id="historyYear" type="number" min="1000" max="9999" step="1" inputmode="numeric"></div>
+            <div class="field hidden" id="historyMonthField"><label for="historyMonth">Mois</label><input id="historyMonth" type="month"></div>
+            <div class="field hidden" id="historyWeekField"><label for="historyWeek">Une date dans la semaine</label><input id="historyWeek" type="date"><span class="small">Du lundi au dimanche.</span></div>
+          </div>
+          <button class="btn secondary compact" id="resetHistoryFilters" type="button">Réinitialiser les filtres</button>
+        </details>
+        <p class="small" id="historyFilterStatus" role="status"></p>
+        <div id="historyList"></div>
+        <button class="btn danger clear-history" id="clearTrips" type="button">Vider tout l’historique des trajets</button>
+      </article>
+    <article class="card content-card" id="paymentsHistoryCard" hidden="">
+        <h2 class="date">Historique des versements</h2>
+        <details class="history-filters" id="paymentsFilters">
+          <summary>Filtrer les versements</summary>
+          <div class="history-filter-grid">
+            <div class="field"><label for="paymentsPerson">Passager</label><select id="paymentsPerson"><option value="all">Tous les passagers</option></select></div>
+            <div class="field"><label for="paymentsPeriod">Période</label><select id="paymentsPeriod"><option value="all">Toutes les dates</option><option value="year">Année</option><option value="month">Mois</option><option value="week">Semaine</option></select></div>
+            <div class="field hidden" id="paymentsYearField"><label for="paymentsYear">Année</label><input id="paymentsYear" type="number" min="1000" max="9999" step="1" inputmode="numeric"></div>
+            <div class="field hidden" id="paymentsMonthField"><label for="paymentsMonth">Mois</label><input id="paymentsMonth" type="month"></div>
+            <div class="field hidden" id="paymentsWeekField"><label for="paymentsWeek">Une date dans la semaine</label><input id="paymentsWeek" type="date"><span class="small">Du lundi au dimanche.</span></div>
+          </div>
+          <button class="btn secondary compact" id="resetPaymentsFilters" type="button">Réinitialiser les filtres</button>
+        </details>
+        <p class="small" id="paymentsFilterStatus" role="status"></p>
+        <div id="paymentHistory" class="payment-history"></div>
+        <button class="btn danger clear-history" id="clearPayments" type="button">Vider tout l’historique des versements</button>
+      </article></section>
+
+    <section id="summary" class="view hidden" role="tabpanel" tabindex="0">
+      <article class="card content-card">
+        <h1 class="date">Versement</h1>
+        <details class="history-filters" id="summaryFilters">
+          <summary>Filtrer par période</summary>
+          <div class="history-filter-grid">
+            
+            <div class="field"><label for="summaryPeriod">Période</label><select id="summaryPeriod"><option value="all">Toutes les dates</option><option value="year">Année</option><option value="month">Mois</option><option value="week">Semaine</option></select></div>
+            <div class="field hidden" id="summaryYearField"><label for="summaryYear">Année</label><input id="summaryYear" type="number" min="1000" max="9999" step="1" inputmode="numeric"></div>
+            <div class="field hidden" id="summaryMonthField"><label for="summaryMonth">Mois</label><input id="summaryMonth" type="month"></div>
+            <div class="field hidden" id="summaryWeekField"><label for="summaryWeek">Une date dans la semaine</label><input id="summaryWeek" type="date"><span class="small">Du lundi au dimanche.</span></div>
+          </div>
+          <button class="btn secondary compact" id="resetSummaryFilters" type="button">Réinitialiser la période</button>
+        </details>
+        <div class="metrics summary-metrics">
+          <div class="metric"><span>Trajets</span><b id="sTrips">0</b></div>
+          <div class="metric"><span>Versements reçus</span><b id="sReceived">0 €</b></div>
+          <div class="metric"><span>Coût estimé</span><b id="sCost">0 €</b></div>
+          <div class="metric"><span>Reste conducteur</span><b id="sDriver">0 €</b></div>
+        </div>
+        <p class="small" id="summaryScope"></p>
+        <div id="personSummary" class="summary-list"></div>
+      </article>
+
+      <div id="paymentFormHome" hidden="">
+        <form id="paymentForm" class="inline-payment" aria-label="Enregistrer un versement" novalidate="">
+          <div class="field"><label for="payAmount">Montant (€)</label><input id="payAmount" type="text" inputmode="decimal" autocomplete="off" placeholder="ex. 50" required=""></div>
+          <div class="field"><label for="payDate">Date du versement</label><input id="payDate" type="date" autocomplete="off" required=""></div>
+          <p id="paymentError" class="small payment-error" role="alert"></p>
+          <button class="btn primary has-icon" id="addPayment" type="submit"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"></path></svg></span><span class="btn-label">Enregistrer le versement</span></button>
+          <button class="btn secondary has-icon" id="cancelPayment" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m6 6 12 12M18 6 6 18"></path></svg></span><span class="btn-label">Annuler</span></button>
+        </form>
+      </div>
+
+      
+    </section>
+
+    <section id="settings" class="view hidden" role="tabpanel" tabindex="0"><article class="card content-card" id="routesCard"><h2 class="date">Itinéraires</h2><button id="addRoute" type="button" class="btn secondary has-icon"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 5v14M5 12h14"/></svg></span><span class="btn-label">Ajouter un itinéraire</span></button><div id="routeAddSlot"></div><div id="routeEditorHome" hidden><form id="routeEditor" class="person-editor" novalidate><div class="field"><label for="routeName">Nom de l’itinéraire</label><input id="routeName" maxlength="40" autocomplete="off" placeholder="ex. Domicile – Travail" required></div><div class="field"><label for="routeDistance">Distance aller simple (km)</label><input id="routeDistance" type="text" inputmode="decimal" autocomplete="off" required></div><div class="field"><label for="routeToll">Péage aller simple (€)</label><input id="routeToll" type="text" inputmode="decimal" autocomplete="off" value="0" required></div><p id="routeError" class="small payment-error" role="alert"></p><button id="saveRoute" type="submit" class="btn primary has-icon"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"/></svg></span><span class="btn-label">Enregistrer</span></button><button id="cancelRouteEditor" type="button" class="btn secondary has-icon"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg></span><span class="btn-label">Annuler</span></button></form></div><div id="activeRoutes"></div><details id="archivedRoutesSection" class="archived-section"><summary>Itinéraires archivés <span id="archivedRoutesCount"></span></summary><p class="small">Les historiques sont conservés. Réactivez un itinéraire pour l’utiliser sur de nouveaux trajets.</p><div id="archivedRoutes"></div></details></article>
+      <article class="card content-card">
+        <h2 class="date">Véhicule et énergie</h2>
+        <div class="row">
+          
+          <div class="field"><label for="energyType">Type d’énergie</label><select id="energyType"><option value="fuel">Carburant</option><option value="electric">Électricité</option></select></div>
+          <div class="field"><label id="consumptionLabel" for="consumption">Consommation (L/100 km)</label><input id="consumption" type="number" min="0" max="100" step="0.1" inputmode="decimal"></div>
+          <div class="field"><label id="energyPriceLabel" for="energyPrice">Prix énergie / carburant (€/L)</label><input id="energyPrice" type="number" min="0" max="20" step="0.01" inputmode="decimal"></div>
+          
+        </div>
+        <div class="field"><label for="vehicleCostPerKm">Coût véhicule / km (€/km)</label><input id="vehicleCostPerKm" type="number" min="0" max="10" step="0.001" inputmode="decimal"></div>
+        <p class="small energy-help" id="vehicleCostHelp">Ce coût couvre notamment l’usure, l’entretien et la décote du véhicule.</p>
+        <p class="small energy-help" id="energyHelp">Le calcul utilise la consommation en L/100 km et le prix en €/L.</p>
+        <button class="btn primary has-icon" id="saveSettings" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"></path></svg></span><span class="btn-label">Enregistrer les réglages</span></button>
+        <p class="small">Réglages communs à tous les itinéraires. Les trajets déjà enregistrés restent inchangés.</p>
+      </article>
+
+
+      <article class="card content-card">
+        <h2 class="date">Passagers</h2>
+        <button class="btn secondary has-icon" id="addPerson" type="button" aria-expanded="false" aria-controls="personEditor"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 5v14M5 12h14"></path></svg></span><span class="btn-label">Ajouter un passager</span></button>
+        <div id="personAddSlot"></div>
+        <div id="personEditorHome" hidden="">
+          <form id="personEditor" class="person-editor" novalidate="">
+            <div class="field"><label for="personEditorName">Prénom ou nom</label><input id="personEditorName" maxlength="40" autocomplete="off" autocapitalize="words" required=""></div>
+            <p id="personEditorError" class="small payment-error" role="alert"></p>
+            <div id="personDuplicates" class="person-duplicates" hidden=""></div>
+            <button id="savePerson" class="btn primary has-icon" type="submit"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"></path></svg></span><span class="btn-label">Ajouter</span></button>
+            <button id="cancelPerson" class="btn secondary has-icon" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m6 6 12 12M18 6 6 18"></path></svg></span><span class="btn-label">Annuler</span></button>
+          </form>
+        </div>
+        <div id="activePeopleSettings" class="people-settings-list"></div>
+        
+        <details id="archivedPeopleSection" class="archived-section hidden">
+          <summary>Passagers archivés <span id="archivedCount"></span></summary><p class="small">Les passagers archivés disparaissent de l’écran du trajet, mais leur historique et leurs versements sont conservés.</p>
+          <div id="archivedPeopleSettings"></div>
+        </details>
+      </article>
+<article class="card content-card"><h2 class="date">Tarif</h2><div class="field"><label for="maxPassengers">Passagers maximum, hors conducteur</label><select id="maxPassengers"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select></div><p class="small">Aller-retour : part totale arrondie à l’euro (dès 50 centimes, euro supérieur). Aller simple : demi-part théorique arrondie à 0,50 € (dès 25 centimes, demi-euro supérieur).</p><p class="small">Le coût aller-retour est partagé entre le conducteur et tous les passagers sélectionnés. Le conducteur assume le reste après les participations.</p><p id="tariffError" class="small payment-error" role="alert"></p><button class="btn primary has-icon" id="saveTariff" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"/></svg></span><span class="btn-label">Enregistrer le tarif</span></button><div class="field tariff-route-field"><label for="tariffRoute">Itinéraire à consulter</label><select id="tariffRoute"></select></div><div id="tariffTable"></div><p class="small">Estimation pour le nombre total de passagers sélectionnés, quelle que soit leur participation. Le conducteur effectue toujours un aller-retour. Les trajets déjà enregistrés restent inchangés.</p></article>
+
+      <article class="card content-card">
+        <h2 class="date">Sauvegarde des données</h2>
+        <p class="small">La sauvegarde contient les itinéraires, trajets, versements, passagers et réglages. Sur iPhone, vous pouvez enregistrer le fichier dans iCloud Drive.</p>
+        <div id="backupStatus" class="backup-status" role="status"></div>
+        <div class="actions data-actions">
+          <button class="btn primary has-icon" id="backupData" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg></span><span class="btn-label">Sauvegarder mes données</span></button>
+          <div class="file-picker">
+            <span class="btn primary has-icon file-picker-face" aria-hidden="true"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"></path></svg></span><span class="btn-label">Restaurer une sauvegarde</span></span>
+            <input accept="application/json,.json" id="restoreFile" type="file" aria-label="Restaurer une sauvegarde Covoiturage">
+          </div>
+        </div>
+      </article>
+
+      <article class="card content-card">
+        <h2 class="date">Apparence</h2>
+        <div class="field"><label for="themeMode">Mode d’affichage</label><select id="themeMode"><option value="system">Automatique (système)</option><option value="light">Clair</option><option value="dark">Sombre</option></select></div>
+        <p class="small">En mode automatique, l’application suit le réglage clair ou sombre de votre appareil.</p>
+        <div class="privacy-note">
+        <h3 class="subsection-title">Confidentialité</h3>
+        <p class="small">Les trajets, versements et réglages restent sur cet appareil. L’application n’envoie pas ces données vers un serveur.</p>
+        <div class="version-badge">Version 5</div>
+        </div>
+      </article>
+    </section>
+
+    <footer class="footer">Données enregistrées localement sur cet appareil.</footer>
+  </main>
+
+
+
+</body></html>
