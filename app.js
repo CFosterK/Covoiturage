@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 5;
+const APP_VERSION = 6;
 const DATA_FORMAT = 'covoiturage-itineraires';
 const SCHEMA_VERSION = 3;
 const STORAGE_KEY = 'covoiturageItinerairesDataV1';
@@ -214,21 +214,20 @@ function openRoutePanel(){
   ensureRouteChoice();if(!selectedRouteId)return;
   const original=editingTrip();
   const choices=data.routes.filter(r=>(!r.archived&&!r.deleted)||r.id===original?.routeId);
-  $('#tripRoute').innerHTML=choices.map(r=>`<option value="${r.id}">${escapeHTML(r.name)}${r.deleted?' (supprimé)':r.archived?' (archivé)':''}</option>`).join('');
-  $('#tripRoute').value=selectedRouteId;
-  routePanelOpen=true;renderRouteChoice();updateRouteEstimate();
+  $('#routePanel').innerHTML=choices.map(r=>{
+    const single=routeSingle(r),selected=r.id===selectedRouteId;
+    const name=r.name+(r.deleted?' (supprimé)':r.archived?' (archivé)':'');
+    return `<button type="button" class="route-option" data-choice-route="${r.id}" aria-pressed="${selected}"><span class="route-option-copy"><span class="route-option-name">${escapeHTML(name)}</span><span class="route-option-detail">Aller-retour · ${decimal(single.distance*2,3)} km · ${single.toll?`Péage ${paymentEuro(single.toll*2)}`:'Sans péage'}</span></span><svg class="route-option-check" viewBox="0 0 24 24" aria-hidden="true"><path d="m20 6-11 11-5-5"/></svg></button>`;
+  }).join('');
+  routePanelOpen=true;renderRouteChoice();
 }
 function closeRoutePanel(restoreFocus=false){
   if($('#routePanel').contains(document.activeElement))document.activeElement.blur();
   routePanelOpen=false;renderRouteChoice();if(restoreFocus)$('#routeToggle').focus({preventScroll:true});
 }
-function updateRouteEstimate(){
-  const r=routeById($('#tripRoute').value),factor=2;
-  $('#routeEstimate').textContent=r?`${decimal(routeSingle(r).distance*factor,3)} km · Péage ${paymentEuro(routeSingle(r).toll*factor)}`:'';
-}
-function validateRouteChoice(){
-  const r=routeById($('#tripRoute').value),original=editingTrip();
-  if(!r||((r.archived||r.deleted)&&r.id!==original?.routeId))return;
+function selectRouteChoice(id){
+  const r=routeById(id),original=editingTrip();
+  if(!routePanelOpen||!r||((r.archived||r.deleted)&&r.id!==original?.routeId))return;
   selectedRouteId=r.id;
   closeRoutePanel(true);calcToday();
 }
@@ -307,7 +306,7 @@ function renderPeople(selected=[]){
     const i=Number(button.dataset.cyclePerson);
     if(button.disabled)return;
     passengerPresences[i]=PRESENCE_CYCLE[(PRESENCE_CYCLE.indexOf(presenceOf(i))+1)%PRESENCE_CYCLE.length];
-    calcToday();
+    calcToday();animatePresencePress(button);
   }));
   calcToday();
 }
@@ -328,7 +327,7 @@ function calcToday(){
     const i=Number(el.dataset.person);
     const button=$(`[data-cycle-person="${i}"]`),presence=presenceOf(i),next=PRESENCE_CYCLE[(PRESENCE_CYCLE.indexOf(presence)+1)%PRESENCE_CYCLE.length];
     button.hidden=false;
-    button.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">${PRESENCE_ICONS[presence]}</svg>`;
+    button.innerHTML=`<span class="presence-face" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false">${PRESENCE_ICONS[presence]}</svg></span>`;
     button.setAttribute('aria-label',`${personName(i)} : ${presenceLabel(presence)}. Passer à ${presenceLabel(next)}.`);
   });
   renderTripMode();
@@ -995,9 +994,8 @@ function exportCsv(){
 }
 
 $('#routeToggle').addEventListener('click',()=>routePanelOpen?closeRoutePanel(true):openRoutePanel());
-$('#cancelRoute').addEventListener('click',()=>closeRoutePanel(true));
-$('#validateRoute').addEventListener('click',validateRouteChoice);
-$('#tripRoute').addEventListener('change',updateRouteEstimate);
+$('#routePanel').addEventListener('click',event=>{const button=event.target.closest('[data-choice-route]');if(button)selectRouteChoice(button.dataset.choiceRoute);});
+$('.route-panel').addEventListener('keydown',event=>{if(event.key==='Escape'&&routePanelOpen){event.preventDefault();event.stopPropagation();closeRoutePanel(true);}});
 $('#createFirstRoute').addEventListener('click',()=>openRouteEditor(null,'today'));
 $('#addRoute').addEventListener('click',()=>openRouteEditor());
 $('#routeEditor').addEventListener('submit',event=>{event.preventDefault();saveRoute();});
@@ -1077,8 +1075,17 @@ $('#paymentHistory').addEventListener('click',event=>{
   if(confirm('Supprimer ce versement ?')){data.payments=data.payments.filter(p=>p.id!==id);if(saveData()){renderAll();flash('Versement supprimé');}}
 });
 
+// Animate only the visible face: the button's 48px touch target stays fixed.
+function animatePresencePress(button){
+  const face=button.querySelector('.presence-face');
+  face?.getAnimations?.().forEach(animation=>animation.cancel());
+  if(!face||button.disabled||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const base=getComputedStyle(face).backgroundColor,tint=getComputedStyle(document.documentElement).getPropertyValue('--accent-soft').trim();
+  face.animate([{transform:'scale(.94)',backgroundColor:tint},{transform:'scale(1)',backgroundColor:base}],{duration:180,easing:'ease-out'});
+}
+
 document.addEventListener('click',event=>{
-  const button=event.target.closest('button'); if(!button || button.classList.contains('tab') || button.disabled || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const button=event.target.closest('button'); if(!button || button.classList.contains('tab') || button.classList.contains('presence-cycle') || button.disabled || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   button.animate([{transform:'scale(1)'},{transform:'scale(.97)'},{transform:'scale(1)'}],{duration:180,easing:'ease-out'});
 });
 
@@ -1104,7 +1111,7 @@ function installVisualFeedback(){
     if(hidden!==keyboardHidden){keyboardHidden=hidden;updateNavigationIndicator(true);}
   }).observe(document.body,{attributes:true,attributeFilter:['class']});
   const motion=matchMedia('(prefers-reduced-motion: reduce)');
-  motion.addEventListener?.('change',()=>{updateNavigationIndicator(true);if(motion.matches)$$('.person').forEach(e=>e.getAnimations?.().forEach(a=>a.cancel()));});
+  motion.addEventListener?.('change',()=>{updateNavigationIndicator(true);if(motion.matches)$$('.person,.presence-face').forEach(e=>e.getAnimations?.().forEach(a=>a.cancel()));});
   // Checkbox change occurs once for both label clicks and keyboard activation.
   $('#people').addEventListener('change',event=>{
     const input=event.target;if(!input.matches('input[data-person]')||input.disabled||motion.matches)return;

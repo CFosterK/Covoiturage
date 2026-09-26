@@ -12,11 +12,11 @@
   <meta name="format-detection" content="telephone=no">
   <meta name="color-scheme" content="light dark">
   <title>Covoiturage</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=5">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=5">
-  <link rel="manifest" href="manifest.webmanifest?v=5">
-  <link rel="stylesheet" href="styles.css?v=5">
-  <script defer="" src="app.js?v=5"></script>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=6">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=6">
+  <link rel="manifest" href="manifest.webmanifest?v=6">
+  <link rel="stylesheet" href="styles.css?v=6">
+  <script defer="" src="app.js?v=6"></script>
 </head>
 <body data-view="today"><div id="status" class="status-toast" role="status" aria-live="polite"></div>
   <div class="ambient" aria-hidden="true"></div>
@@ -62,7 +62,7 @@
           <label for="tripDate">Date du trajet</label>
           <input id="tripDate" type="date" autocomplete="off">
         </div>
-        <div class="route-panel"><button id="routeToggle" class="btn secondary route-toggle" type="button" aria-expanded="false" aria-controls="routePanel"><span id="routeTitle">Choisir un itinéraire</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button><div id="routePanel" hidden><div class="field"><label for="tripRoute">Itinéraire</label><select id="tripRoute"></select></div><p id="routeEstimate" class="small"></p><p class="small">L’aller-retour suppose un retour identique à l’aller.</p><button id="validateRoute" type="button" class="btn primary has-icon"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"/></svg></span><span class="btn-label">Valider</span></button><button id="cancelRoute" type="button" class="btn secondary has-icon"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg></span><span class="btn-label">Annuler</span></button></div><div id="noRoutes"><p class="small">Ajoutez ou réactivez un itinéraire pour enregistrer un trajet.</p><button id="createFirstRoute" type="button" aria-expanded="false" aria-controls="routeEditor" class="btn secondary has-icon"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 5v14M5 12h14"/></svg></span><span class="btn-label">Ajouter un itinéraire</span></button></div><div id="tripRouteAddSlot"></div></div><button class="btn secondary has-icon" id="addTripPerson" type="button" aria-expanded="false" aria-controls="personEditor"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 5v14M5 12h14"/></svg></span><span class="btn-label">Ajouter un passager</span></button><div id="tripPersonAddSlot"></div><div id="people" class="people-list"></div><p class="small payment-error" id="capacityError" role="alert"></p>
+        <div class="route-panel"><button id="routeToggle" class="btn secondary route-toggle" type="button" aria-expanded="false" aria-controls="routePanel"><span id="routeTitle">Choisir un itinéraire</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button><div id="routePanel" role="group" aria-label="Choisir un itinéraire" hidden></div><div id="noRoutes"><p class="small">Ajoutez ou réactivez un itinéraire pour enregistrer un trajet.</p><button id="createFirstRoute" type="button" aria-expanded="false" aria-controls="routeEditor" class="btn secondary has-icon"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 5v14M5 12h14"/></svg></span><span class="btn-label">Ajouter un itinéraire</span></button></div><div id="tripRouteAddSlot"></div></div><button class="btn secondary has-icon" id="addTripPerson" type="button" aria-expanded="false" aria-controls="personEditor"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 5v14M5 12h14"/></svg></span><span class="btn-label">Ajouter un passager</span></button><div id="tripPersonAddSlot"></div><div id="people" class="people-list"></div><p class="small payment-error" id="capacityError" role="alert"></p>
       </article>
 
       <article class="card content-card action-card">
@@ -212,7 +212,7 @@
         <div class="privacy-note">
         <h3 class="subsection-title">Confidentialité</h3>
         <p class="small">Les trajets, versements et réglages restent sur cet appareil. L’application n’envoie pas ces données vers un serveur.</p>
-        <div class="version-badge">Version 5</div>
+        <div class="version-badge">Version 6</div>
         </div>
       </article>
     </section>
