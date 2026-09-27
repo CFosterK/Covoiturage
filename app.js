@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 7;
+const APP_VERSION = 8;
 const DATA_FORMAT = 'covoiturage-itineraires';
 const SCHEMA_VERSION = 3;
 const STORAGE_KEY = 'covoiturageItinerairesDataV1';
@@ -21,6 +21,7 @@ const DEFAULT_DATA = Object.freeze({
 const cloneDefaults = () => JSON.parse(JSON.stringify(DEFAULT_DATA));
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
+const selectionMenus=new Map();
 const isNumeric = value => (typeof value==='number' || (typeof value==='string' && value.trim()!=='')) && Number.isFinite(Number(value));
 const finite = (value, fallback=0) => isNumeric(value) ? Number(value) : fallback;
 const clamp = (value, min, max, fallback=min) => Math.min(max, Math.max(min, finite(value, fallback)));
@@ -211,6 +212,7 @@ function renderRouteChoice(){
   $('#save').disabled=!selectedRouteId||tripSaving||Date.now()<tripSaveUntil||capacityBlocked();
 }
 function openRoutePanel(){
+  closeSelectionMenus();
   ensureRouteChoice();if(!selectedRouteId)return;
   const original=editingTrip();
   const choices=data.routes.filter(r=>(!r.archived&&!r.deleted)||r.id===original?.routeId);
@@ -422,11 +424,64 @@ const CONTROL_CHEVRON='<svg viewBox="0 0 24 24" focusable="false" aria-hidden="t
 function appendControlChevron(wrapper){
   const icon=document.createElement('span');icon.className='control-chevron';icon.setAttribute('aria-hidden','true');icon.innerHTML=CONTROL_CHEVRON;wrapper.append(icon);
 }
-function installSelectChevrons(){
-  document.querySelectorAll('select').forEach(select=>{
-    if(select.parentElement.classList.contains('select-control'))return;
-    const wrapper=document.createElement('div');wrapper.className='select-control';select.before(wrapper);wrapper.append(select);appendControlChevron(wrapper);
+// Native selects remain the value model; accessible buttons are their visible interface.
+function closeSelectionMenus(restoreFocus=false){
+  selectionMenus.forEach(menu=>{
+    if(menu.panel.hidden)return;
+    menu.panel.hidden=true;menu.trigger.setAttribute('aria-expanded','false');
+    if(restoreFocus&&!menu.trigger.disabled)menu.trigger.focus({preventScroll:true});
   });
+}
+function syncSelectionMenus(){
+  selectionMenus.forEach(menu=>{
+    const {select,trigger,panel,value}=menu;
+    value.textContent=select.options[select.selectedIndex]?.textContent||(select.id==='tariffRoute'?'Aucun itinéraire disponible':'Aucun choix disponible');
+    trigger.disabled=select.disabled||![...select.options].some(option=>!option.disabled&&!option.hidden);
+    if(trigger.disabled){panel.hidden=true;trigger.setAttribute('aria-expanded','false');}
+    const signature=JSON.stringify([...select.options].map(option=>[option.value,option.textContent,option.selected,option.disabled,option.hidden]));
+    if(signature===menu.signature)return;
+    menu.signature=signature;panel.replaceChildren();
+    [...select.options].forEach((option,index)=>{
+      if(option.hidden)return;
+      const button=document.createElement('button'),text=document.createElement('span');
+      button.type='button';button.className='route-option';button.dataset.optionIndex=String(index);button.disabled=option.disabled;
+      button.setAttribute('aria-pressed',String(option.selected));text.className='route-option-copy route-option-name';text.textContent=option.textContent;
+      button.append(text);button.insertAdjacentHTML('beforeend','<svg class="route-option-check" viewBox="0 0 24 24" aria-hidden="true"><path d="m20 6-11 11-5-5"/></svg>');panel.append(button);
+    });
+  });
+}
+function installSelectionMenus(){
+  $$('select').forEach(select=>{
+    const wrapper=document.createElement('div'),trigger=document.createElement('button'),value=document.createElement('span'),panel=document.createElement('div');
+    wrapper.className='selection-menu';trigger.type='button';trigger.className='btn secondary route-toggle selection-trigger';trigger.id=select.id+'Trigger';
+    value.id=select.id+'Value';panel.id=select.id+'Options';panel.className='selection-options';panel.hidden=true;panel.setAttribute('role','group');
+    const label=document.querySelector(`label[for="${select.id}"]`);
+    if(label){label.id=label.id||select.id+'Label';label.htmlFor=trigger.id;trigger.setAttribute('aria-labelledby',label.id+' '+value.id);panel.setAttribute('aria-labelledby',label.id);}
+    else{trigger.setAttribute('aria-label',select.getAttribute('aria-label')||select.id);panel.setAttribute('aria-label',select.getAttribute('aria-label')||select.id);}
+    trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-controls',panel.id);trigger.append(value);trigger.insertAdjacentHTML('beforeend',CONTROL_CHEVRON);
+    select.before(wrapper);wrapper.append(select,trigger,panel);select.hidden=true;select.tabIndex=-1;select.setAttribute('aria-hidden','true');
+    const menu={select,wrapper,trigger,panel,value,signature:null};selectionMenus.set(select.id,menu);
+    trigger.addEventListener('click',()=>{
+      const opening=panel.hidden;closeSelectionMenus();if(routePanelOpen)closeRoutePanel();syncSelectionMenus();
+      if(opening&&!trigger.disabled){panel.hidden=false;trigger.setAttribute('aria-expanded','true');}
+    });
+    panel.addEventListener('click',event=>{
+      const button=event.target.closest('[data-option-index]');if(!button||button.disabled)return;
+      const option=select.options[Number(button.dataset.optionIndex)];if(!option||option.disabled)return;
+      closeSelectionMenus();select.selectedIndex=Number(button.dataset.optionIndex);
+      select.dispatchEvent(new Event('change',{bubbles:true}));syncSelectionMenus();
+      if(!trigger.disabled)trigger.focus({preventScroll:true});
+    });
+    wrapper.addEventListener('keydown',event=>{if(event.key==='Escape'&&!panel.hidden){event.preventDefault();event.stopPropagation();closeSelectionMenus(true);}});
+    new MutationObserver(syncSelectionMenus).observe(select,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['disabled','selected','label','value','hidden']});
+  });
+  document.addEventListener('change',syncSelectionMenus);
+  document.addEventListener('click',event=>{
+    selectionMenus.forEach(menu=>{if(!menu.panel.hidden&&!menu.wrapper.contains(event.target)){menu.panel.hidden=true;menu.trigger.setAttribute('aria-expanded','false');}});
+    if(routePanelOpen&&!$('.route-panel').contains(event.target))closeRoutePanel();
+  });
+  document.addEventListener('toggle',event=>{if(event.target.matches('details')&&!event.target.open)closeSelectionMenus();},true);
+  syncSelectionMenus();
 }
 function installDateDisplays(){
   document.querySelectorAll('input[type="date"],input[type="month"]').forEach(input=>{
@@ -451,6 +506,7 @@ function renderHistoryFilter(prefix){
   for(const [value,suffix] of [['year','Year'],['month','Month'],['week','Week']]){
     $(`#${prefix}${suffix}Field`).classList.toggle('hidden',mode!==value);
   }
+  syncSelectionMenus();
 }
 
 function historyDateRange(prefix){
@@ -561,6 +617,7 @@ function renderSummaryFilter(){
   syncDateDisplays();
   const mode=$('#summaryPeriod').value;
   for(const [value,suffix] of [['year','Year'],['month','Month'],['week','Week']])$('#summary'+suffix+'Field').classList.toggle('hidden',mode!==value);
+  syncSelectionMenus();
 }
 function initSummaryFilters(){
   $('#summaryPeriod').value='all';
@@ -569,7 +626,7 @@ function initSummaryFilters(){
   for(const suffix of ['Period','Year','Month','Week'])$('#summary'+suffix).addEventListener('change',update);
   $('#resetSummaryFilters').addEventListener('click',()=>{$('#summaryPeriod').value='all';update();});
   $$('[data-history-view]').forEach(button=>button.addEventListener('click',()=>{
-    const trips=button.dataset.historyView==='trips';$('#tripsHistoryCard').hidden=!trips;$('#paymentsHistoryCard').hidden=trips;
+    closeSelectionMenus();const trips=button.dataset.historyView==='trips';$('#tripsHistoryCard').hidden=!trips;$('#paymentsHistoryCard').hidden=trips;
     $$('[data-history-view]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
   }));
 }
@@ -752,7 +809,7 @@ function renderTariff(){
   $('#maxPassengers').value=String(data.settings.maxPassengers);
   $('#tariffRoute').innerHTML=activeRoutes().map(r=>`<option value="${r.id}">${escapeHTML(r.name)}</option>`).join('');
   if(activeRoutes().some(r=>r.id===choice))$('#tariffRoute').value=choice;
-  $('#tariffRoute').disabled=!activeRoutes().length;renderTariffTable();
+  $('#tariffRoute').disabled=!activeRoutes().length;renderTariffTable();syncSelectionMenus();
 }
 function saveTariff(){
   const maxPassengers=Number($('#maxPassengers').value);
@@ -760,6 +817,7 @@ function saveTariff(){
   data.settings={...data.settings,maxPassengers};$('#tariffError').textContent='';
   if(saveData()){renderTariff();calcToday();flash('Tarif enregistré ✓');}
   else{$('#maxPassengers').value=String(maxPassengers);renderTariffTable();$('#tariffError').textContent='L’enregistrement a échoué. Vos choix sont conservés.';}
+  syncSelectionMenus();
 }
 
 function renderSettings(){
@@ -769,7 +827,7 @@ function renderSettings(){
   updateEnergyLabels();
   updateVehicleCostHelp();
   renderPeopleSettings();renderRoutes();renderTariff();
-  renderBackupStatus();
+  renderBackupStatus();syncSelectionMenus();
 
 }
 
@@ -780,6 +838,7 @@ function renderAll(){
 }
 
 function selectTab(tab){
+  closeSelectionMenus();
   closePersonEditor();
   closePayment();
   if(tab!=='today' && editingTripId){
@@ -976,7 +1035,7 @@ async function restoreData(file){
   const next=normalizeData(parsed.data);
   if(!confirm(`Restaurer cette sauvegarde (${next.routes.filter(r=>!r.deleted).length} itinéraires, ${next.trips.length} trajets, ${next.payments.length} versements) ? Les données actuelles seront remplacées.`))return;
   data=next;
-  if(saveData({allowRecovery:true})){passengerPresences={};renderPeople([]);editingTripId=null;newTripDraft=null;selectedRouteId=null;selectedDirection='roundtrip';closeRoutePanel();closeRouteEditor();closePayment();if(personEditorMode)closePersonEditor();paymentDisplayLimit=8;applyTheme();renderAll();flash('Sauvegarde restaurée ✓');}
+  if(saveData({allowRecovery:true})){closeSelectionMenus();passengerPresences={};renderPeople([]);editingTripId=null;newTripDraft=null;selectedRouteId=null;selectedDirection='roundtrip';closeRoutePanel();closeRouteEditor();closePayment();if(personEditorMode)closePersonEditor();paymentDisplayLimit=8;applyTheme();renderAll();flash('Sauvegarde restaurée ✓');}
 }
 
 function safeCsvValue(value){
@@ -1127,7 +1186,7 @@ applyTheme();
 renderAll();
 installVisualFeedback();
 installDateDisplays();
-installSelectChevrons();
+installSelectionMenus();
 if(storageProblem) alert(storageProblem+' Aucune donnée originale n’a été remplacée. Consultez la rubrique Sauvegarde dans Réglages.');
 
 if('serviceWorker' in navigator){

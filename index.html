@@ -12,11 +12,11 @@
   <meta name="format-detection" content="telephone=no">
   <meta name="color-scheme" content="light dark">
   <title>Covoiturage</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=7">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=7">
-  <link rel="manifest" href="manifest.webmanifest?v=7">
-  <link rel="stylesheet" href="styles.css?v=7">
-  <script defer="" src="app.js?v=7"></script>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=8">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=8">
+  <link rel="manifest" href="manifest.webmanifest?v=8">
+  <link rel="stylesheet" href="styles.css?v=8">
+  <script defer="" src="app.js?v=8"></script>
 </head>
 <body data-view="today"><div id="status" class="status-toast" role="status" aria-live="polite"></div>
   <div class="ambient" aria-hidden="true"></div>
@@ -153,24 +153,7 @@
     </section>
 
     <section id="settings" class="view hidden" role="tabpanel" tabindex="0"><article class="card content-card" id="routesCard"><h2 class="date">Itinéraires</h2><button id="addRoute" type="button" class="btn secondary has-icon"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 5v14M5 12h14"/></svg></span><span class="btn-label">Ajouter un itinéraire</span></button><div id="routeAddSlot"></div><div id="routeEditorHome" hidden><form id="routeEditor" class="person-editor" novalidate><div class="field"><label for="routeName">Nom de l’itinéraire</label><input id="routeName" maxlength="40" autocomplete="off" placeholder="ex. Domicile – Travail" required></div><div class="field"><label for="routeDistance">Distance aller simple (km)</label><input id="routeDistance" type="text" inputmode="decimal" autocomplete="off" required></div><div class="field"><label for="routeToll">Péage aller simple (€)</label><input id="routeToll" type="text" inputmode="decimal" autocomplete="off" value="0" required></div><p id="routeError" class="small payment-error" role="alert"></p><button id="saveRoute" type="submit" class="btn primary has-icon"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"/></svg></span><span class="btn-label">Enregistrer</span></button><button id="cancelRouteEditor" type="button" class="btn secondary has-icon"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg></span><span class="btn-label">Annuler</span></button></form></div><div id="activeRoutes"></div><details id="archivedRoutesSection" class="archived-section"><summary>Itinéraires archivés <span id="archivedRoutesCount"></span></summary><p class="small">Les historiques sont conservés. Réactivez un itinéraire pour l’utiliser sur de nouveaux trajets.</p><div id="archivedRoutes"></div></details></article>
-      <article class="card content-card">
-        <h2 class="date">Véhicule et énergie</h2>
-        <div class="row">
-          
-          <div class="field"><label for="energyType">Type d’énergie</label><select id="energyType"><option value="fuel">Carburant</option><option value="electric">Électricité</option></select></div>
-          <div class="field"><label id="consumptionLabel" for="consumption">Consommation (L/100 km)</label><input id="consumption" type="number" min="0" max="100" step="0.1" inputmode="decimal"></div>
-          <div class="field"><label id="energyPriceLabel" for="energyPrice">Prix énergie / carburant (€/L)</label><input id="energyPrice" type="number" min="0" max="20" step="0.01" inputmode="decimal"></div>
-          
-        </div>
-        <div class="field"><label for="vehicleCostPerKm">Coût véhicule / km (€/km)</label><input id="vehicleCostPerKm" type="number" min="0" max="10" step="0.001" inputmode="decimal"></div>
-        <p class="small energy-help" id="vehicleCostHelp">Ce coût couvre notamment l’usure, l’entretien et la décote du véhicule.</p>
-        <p class="small energy-help" id="energyHelp">Le calcul utilise la consommation en L/100 km et le prix en €/L.</p>
-        <button class="btn primary has-icon" id="saveSettings" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"></path></svg></span><span class="btn-label">Enregistrer les réglages</span></button>
-        <p class="small">Réglages communs à tous les itinéraires. Les trajets déjà enregistrés restent inchangés.</p>
-      </article>
-
-
-      <article class="card content-card">
+<article class="card content-card">
         <h2 class="date">Passagers</h2>
         <button class="btn secondary has-icon" id="addPerson" type="button" aria-expanded="false" aria-controls="personEditor"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 5v14M5 12h14"></path></svg></span><span class="btn-label">Ajouter un passager</span></button>
         <div id="personAddSlot"></div>
@@ -190,6 +173,24 @@
           <div id="archivedPeopleSettings"></div>
         </details>
       </article>
+      <article class="card content-card">
+        <h2 class="date">Véhicule et énergie</h2>
+        <div class="row">
+          
+          <div class="field"><label for="energyType">Type d’énergie</label><select id="energyType"><option value="fuel">Carburant</option><option value="electric">Électricité</option></select></div>
+          <div class="field"><label id="consumptionLabel" for="consumption">Consommation (L/100 km)</label><input id="consumption" type="number" min="0" max="100" step="0.1" inputmode="decimal"></div>
+          <div class="field"><label id="energyPriceLabel" for="energyPrice">Prix énergie / carburant (€/L)</label><input id="energyPrice" type="number" min="0" max="20" step="0.01" inputmode="decimal"></div>
+          
+        </div>
+        <div class="field"><label for="vehicleCostPerKm">Coût véhicule / km (€/km)</label><input id="vehicleCostPerKm" type="number" min="0" max="10" step="0.001" inputmode="decimal"></div>
+        <p class="small energy-help" id="vehicleCostHelp">Ce coût couvre notamment l’usure, l’entretien et la décote du véhicule.</p>
+        <p class="small energy-help" id="energyHelp">Le calcul utilise la consommation en L/100 km et le prix en €/L.</p>
+        <button class="btn primary has-icon" id="saveSettings" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"></path></svg></span><span class="btn-label">Enregistrer les réglages</span></button>
+        <p class="small">Réglages communs à tous les itinéraires. Les trajets déjà enregistrés restent inchangés.</p>
+      </article>
+
+
+      
 <article class="card content-card"><h2 class="date">Tarifs</h2><div class="field"><label for="maxPassengers">Passagers maximum, hors conducteur</label><select id="maxPassengers"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select></div><p class="small">Aller-retour : part totale arrondie à l’euro (dès 50 centimes, euro supérieur). Aller simple : demi-part théorique arrondie à 0,50 € (dès 25 centimes, demi-euro supérieur).</p><p class="small">Le coût aller-retour est partagé entre le conducteur et tous les passagers sélectionnés. Le conducteur assume le reste après les participations.</p><p id="tariffError" class="small payment-error" role="alert"></p><button class="btn primary has-icon" id="saveTariff" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"/></svg></span><span class="btn-label">Enregistrer le tarif</span></button><div class="field tariff-route-field"><label for="tariffRoute">Itinéraire à consulter</label><select id="tariffRoute"></select></div><div id="tariffTable"></div><p class="small">Estimation pour le nombre total de passagers sélectionnés, quelle que soit leur participation. Le conducteur effectue toujours un aller-retour. Les trajets déjà enregistrés restent inchangés.</p></article>
 
       <article class="card content-card">
@@ -212,7 +213,7 @@
         <div class="privacy-note">
         <h3 class="subsection-title">Confidentialité</h3>
         <p class="small">Les trajets, versements et réglages restent sur cet appareil. L’application n’envoie pas ces données vers un serveur.</p>
-        <div class="version-badge">Version 7</div>
+        <div class="version-badge">Version 8</div>
         </div>
       </article>
     </section>
