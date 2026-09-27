@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 8;
+const APP_VERSION = 10;
 const DATA_FORMAT = 'covoiturage-itineraires';
 const SCHEMA_VERSION = 3;
 const STORAGE_KEY = 'covoiturageItinerairesDataV1';
@@ -22,6 +22,7 @@ const cloneDefaults = () => JSON.parse(JSON.stringify(DEFAULT_DATA));
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
 const selectionMenus=new Map();
+const calendarMenus=new Map();
 const isNumeric = value => (typeof value==='number' || (typeof value==='string' && value.trim()!=='')) && Number.isFinite(Number(value));
 const finite = (value, fallback=0) => isNumeric(value) ? Number(value) : fallback;
 const clamp = (value, min, max, fallback=min) => Math.min(max, Math.max(min, finite(value, fallback)));
@@ -367,7 +368,7 @@ function saveEditedTrip(){
   const index=data.trips.findIndex(t=>t.id===editingTripId), original=data.trips[index];
   if(!original){alert('Ce trajet n’existe plus.');finishEditing();renderHistory();return;}
   const date=safeDate($('#tripDate').value,null);
-  if(!date){alert('Choisissez une date valide.');$('#tripDate').focus();return;}
+  if(!date){alert('Choisissez une date valide.');$('#tripDateTrigger').focus({preventScroll:true});return;}
   const people=selectedPassengers();
   if(capacityBlocked()){calcToday();return;}
   const updated={...original,date,people};
@@ -390,7 +391,7 @@ function addTrip(){
   const people=selectedPassengers();
   if(capacityBlocked()){calcToday();return;}
   const selectedDate=safeDate($('#tripDate').value,null);
-  if(!selectedDate){alert('Choisissez une date valide.');$('#tripDate').focus();return;}
+  if(!selectedDate){alert('Choisissez une date valide.');$('#tripDateTrigger').focus({preventScroll:true});return;}
   tripSaving=true;$('#save').disabled=true;
   try{
     if(editingTripId){saveEditedTrip();return;}
@@ -412,20 +413,13 @@ function fullDate(value){
 function fullMonth(value){
   return /^[1-9]\d{3}-(0[1-9]|1[0-2])$/.test(value)?upperFirst(new Date(value+'-01T12:00:00').toLocaleDateString('fr-FR',{month:'long',year:'numeric'})):'';
 }
-function syncDateDisplays(){
-  document.querySelectorAll('.formatted-date').forEach(wrapper=>{
-    const input=wrapper.querySelector('input'),label=wrapper.querySelector('.formatted-date-label');
-    const text=input.type==='month'?fullMonth(input.value):(safeDate(input.value,null)?fullDate(input.value):'');
-    label.textContent=text||(input.type==='month'?'Choisir un mois':'Choisir une date');
-    wrapper.classList.toggle('date-empty',!text);
-  });
-}
 const CONTROL_CHEVRON='<svg viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
 function appendControlChevron(wrapper){
   const icon=document.createElement('span');icon.className='control-chevron';icon.setAttribute('aria-hidden','true');icon.innerHTML=CONTROL_CHEVRON;wrapper.append(icon);
 }
 // Native selects remain the value model; accessible buttons are their visible interface.
 function closeSelectionMenus(restoreFocus=false){
+  closeCalendars(restoreFocus);
   selectionMenus.forEach(menu=>{
     if(menu.panel.hidden)return;
     menu.panel.hidden=true;menu.trigger.setAttribute('aria-expanded','false');
@@ -483,19 +477,68 @@ function installSelectionMenus(){
   document.addEventListener('toggle',event=>{if(event.target.matches('details')&&!event.target.open)closeSelectionMenus();},true);
   syncSelectionMenus();
 }
-function installDateDisplays(){
-  document.querySelectorAll('input[type="date"],input[type="month"]').forEach(input=>{
-    if(!['date','month'].includes(input.type))return; // Native text fallback remains editable.
-    const wrapper=document.createElement('div'),label=document.createElement('span');
-    wrapper.className='formatted-date';label.className='formatted-date-label';label.setAttribute('aria-hidden','true');
-    input.before(wrapper);wrapper.append(input,label);appendControlChevron(wrapper);
-    input.addEventListener('input',syncDateDisplays);input.addEventListener('change',syncDateDisplays);
-    input.addEventListener('blur',syncDateDisplays);
-    input.addEventListener('click',()=>{try{input.showPicker?.();}catch{/* The native control remains usable. */}});
+function closeCalendars(restoreFocus=false){
+  calendarMenus.forEach(menu=>{if(menu.panel.hidden)return;menu.panel.hidden=true;menu.trigger.setAttribute('aria-expanded','false');if(restoreFocus)menu.trigger.focus({preventScroll:true});});
+}
+function syncDateDisplays(){
+  calendarMenus.forEach(({input,trigger,value,kind})=>{
+    value.textContent=(kind==='year'?(/^[1-9]\d{3}$/.test(input.value)?input.value:''):kind==='month'?fullMonth(input.value):safeDate(input.value,null)?fullDate(input.value):'')||({year:'Choisir une année',month:'Choisir un mois',day:'Choisir une date'}[kind]);
+    trigger.disabled=input.disabled;
   });
-  document.addEventListener('reset',()=>setTimeout(syncDateDisplays,0));
+}
+function calendarBounds(menu){
+  const min=menu.input.min||'1000',max=menu.input.max||'9999';
+  return {minYear:Math.max(1000,Number(min.slice(0,4))),maxYear:Math.min(9999,Number(max.slice(0,4)))};
+}
+function renderCalendar(menu){
+  const {input,panel,kind}=menu,{minYear,maxYear}=calendarBounds(menu);
+  const selected=input.value,base=Math.max(minYear,Math.floor(menu.year/12)*12);
+  const title=kind==='year'?`${base} – ${Math.min(base+11,maxYear)}`:kind==='month'?String(menu.year):fullMonth(`${menu.year}-${String(menu.month+1).padStart(2,'0')}`);
+  const atStart=kind==='year'?base<=minYear:menu.year===minYear&&(kind==='month'||menu.month===0);
+  const atEnd=kind==='year'?base+11>=maxYear:menu.year===maxYear&&(kind==='month'||menu.month===11);
+  let html=`<div class="calendar-heading"><button type="button" class="calendar-step" data-shift="-1" aria-label="${kind==='year'?'Douze années précédentes':kind==='month'?'Année précédente':'Mois précédent'}" ${atStart?'disabled':''}>${CONTROL_CHEVRON}</button><strong aria-live="polite">${title}</strong><button type="button" class="calendar-step" data-shift="1" aria-label="${kind==='year'?'Douze années suivantes':kind==='month'?'Année suivante':'Mois suivant'}" ${atEnd?'disabled':''}>${CONTROL_CHEVRON}</button></div><div class="calendar-grid ${kind==='day'?'calendar-days':''}">`;
+  const option=(value,label,accessible)=>`<button type="button" data-calendar-value="${value}" aria-label="${escapeHTML(accessible||label)}" aria-pressed="${selected===value}">${label}</button>`;
+  if(kind==='year')for(let y=base;y<=Math.min(base+11,maxYear);y++)html+=option(String(y),String(y));
+  else if(kind==='month')for(let m=1;m<=12;m++){const value=`${menu.year}-${String(m).padStart(2,'0')}`;html+=option(value,fullMonth(value).replace(/ \d+$/,''),fullMonth(value));}
+  else{
+    html+=['Lu','Ma','Me','Je','Ve','Sa','Di'].map(day=>`<span aria-hidden="true">${day}</span>`).join('');
+    const offset=(new Date(menu.year,menu.month,1,12).getDay()+6)%7;
+    html+='<span aria-hidden="true"></span>'.repeat(offset);
+    for(let d=1;d<=new Date(menu.year,menu.month+1,0,12).getDate();d++){const value=localISO(new Date(menu.year,menu.month,d,12));html+=option(value,String(d),fullDate(value));}
+  }
+  html+='</div>';
+  if(kind!=='year')html+=`<button type="button" class="btn secondary calendar-now" data-calendar-now>${kind==='month'?'Ce mois-ci':'Aujourd’hui'}</button>`;
+  panel.innerHTML=html;
+}
+function installDateDisplays(){
+  $$('input[type="date"],input[type="month"],#historyYear,#paymentsYear,#summaryYear').forEach(input=>{
+    const kind=input.type==='month'?'month':input.type==='number'?'year':'day';
+    const wrapper=document.createElement('div'),trigger=document.createElement('button'),value=document.createElement('span'),panel=document.createElement('div');
+    wrapper.className='calendar-control';trigger.type='button';trigger.id=input.id+'Trigger';trigger.className='btn secondary route-toggle calendar-trigger';
+    value.id=input.id+'Value';panel.id=input.id+'Calendar';panel.className='calendar-panel';panel.hidden=true;panel.setAttribute('role','group');
+    const label=document.querySelector(`label[for="${input.id}"]`);label.id=label.id||input.id+'Label';label.htmlFor=trigger.id;
+    trigger.setAttribute('aria-labelledby',label.id+' '+value.id);trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-controls',panel.id);panel.setAttribute('aria-labelledby',label.id);
+    trigger.append(value);trigger.insertAdjacentHTML('beforeend',CONTROL_CHEVRON);input.before(wrapper);wrapper.append(input,trigger,panel);input.hidden=true;input.tabIndex=-1;input.setAttribute('aria-hidden','true');
+    const menu={input,trigger,value,panel,wrapper,kind,year:2026,month:0};calendarMenus.set(input.id,menu);
+    trigger.addEventListener('click',()=>{
+      const opening=panel.hidden;closeSelectionMenus();if(routePanelOpen)closeRoutePanel();if(!opening)return;
+      const initial=input.value||getToday(),bounds=calendarBounds(menu);menu.year=Math.min(bounds.maxYear,Math.max(bounds.minYear,Number(initial.slice(0,4))||new Date().getFullYear()));menu.month=Math.max(0,Math.min(11,Number(initial.slice(5,7)||1)-1));
+      renderCalendar(menu);panel.hidden=false;trigger.setAttribute('aria-expanded','true');
+    });
+    panel.addEventListener('click',event=>{
+      const button=event.target.closest('button');if(!button||button.disabled)return;
+      if(button.dataset.shift){const n=Number(button.dataset.shift),{minYear,maxYear}=calendarBounds(menu);if(kind==='year')menu.year=Math.max(minYear,Math.min(maxYear,menu.year+n*12));else if(kind==='month')menu.year+=n;else{const d=new Date(menu.year,menu.month+n,1,12);menu.year=d.getFullYear();menu.month=d.getMonth();}renderCalendar(menu);const next=panel.querySelector(`[data-shift="${n}"]`);(next.disabled?trigger:next).focus({preventScroll:true});return;}
+      const chosen=button.hasAttribute('data-calendar-now')?(kind==='month'?getToday().slice(0,7):getToday()):button.dataset.calendarValue;if(!chosen)return;
+      closeCalendars();input.value=chosen;input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));syncDateDisplays();trigger.focus({preventScroll:true});
+    });
+    wrapper.addEventListener('keydown',event=>{if(event.key==='Escape'&&!panel.hidden){event.preventDefault();event.stopPropagation();closeCalendars(true);}});
+    input.addEventListener('input',syncDateDisplays);input.addEventListener('change',syncDateDisplays);
+  });
+  document.addEventListener('click',event=>{calendarMenus.forEach(menu=>{if(!menu.panel.hidden&&!event.composedPath().includes(menu.wrapper)){menu.panel.hidden=true;menu.trigger.setAttribute('aria-expanded','false');}});});
+  document.addEventListener('reset',()=>{closeCalendars();setTimeout(syncDateDisplays,0);});
   syncDateDisplays();
 }
+
 
 function renderHistoryFilter(prefix){
   syncDateDisplays();
@@ -684,6 +727,7 @@ function mountPaymentForm(){
 }
 
 function closePayment(restoreFocus=false){
+  closeCalendars();
   const index=activePaymentPerson,form=$('#paymentForm');
   if(form.contains(document.activeElement)) document.activeElement.blur();
   activePaymentPerson=null;

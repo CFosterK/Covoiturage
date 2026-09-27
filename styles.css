@@ -408,3 +408,21 @@ select,.field select,.formatted-date input,.formatted-date-label,input[type="dat
 /* V8: one inline selection pattern; date/month pickers retain their native inputs. */
 .selection-menu{min-width:0;width:100%}.selection-menu>select[hidden]{display:none!important}.selection-trigger{margin:0;font-family:inherit;font-size:16px;font-weight:720}.selection-options{margin-top:10px;border:1px solid var(--glass-border);border-radius:18px;overflow:hidden;background:var(--glass)}.selection-options[hidden]{display:none!important}.selection-options .route-option:disabled{opacity:.5;cursor:default}.selection-trigger:disabled{opacity:.55;cursor:default}
 .field input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),.field input::placeholder{font-family:inherit;font-size:16px;font-weight:720}
+
+/* V9: inline calendars share the selection triggers and the existing value model. */
+.calendar-control{width:100%;min-width:0}.calendar-control>input[hidden]{display:none!important}
+.calendar-trigger{margin:0;font-family:inherit;font-size:16px;font-weight:720}.calendar-trigger span{min-width:0;overflow-wrap:anywhere}
+.calendar-trigger[aria-expanded="true"]>svg,.selection-trigger[aria-expanded="true"]>svg{transform:rotate(180deg)}
+.calendar-panel{padding:10px 0;margin-top:10px;border:1px solid var(--glass-border);border-radius:18px;background:var(--content);min-width:0}.calendar-panel[hidden]{display:none!important}
+.calendar-heading{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:0 6px}.calendar-heading strong{font-size:16px;text-align:center}
+.calendar-panel button{font:inherit;color:var(--text);cursor:pointer}.calendar-step{display:grid;place-items:center;flex:0 0 44px;height:44px;background:var(--glass);border:1px solid var(--glass-border);border-radius:14px}
+.calendar-step svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}.calendar-step[data-shift="-1"] svg{transform:rotate(90deg)}.calendar-step[data-shift="1"] svg{transform:rotate(-90deg)}.calendar-step:disabled{opacity:.4;cursor:default}
+.calendar-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:6px}.calendar-grid button{min-height:44px;min-width:0;padding:8px 2px;background:var(--glass);border:1px solid var(--glass-border);border-radius:12px;font-size:14px;font-weight:720;overflow-wrap:anywhere}
+.calendar-grid button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.calendar-days{grid-template-columns:repeat(7,minmax(0,1fr));gap:0;padding:6px 0}.calendar-days button{padding:0;background:transparent;border-color:transparent;font-size:16px}.calendar-days>span{text-align:center;font-size:12px;color:var(--muted);padding:8px 0}
+.calendar-panel button:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}.calendar-now{width:calc(100% - 12px);margin:6px 6px 0}
+.metrics{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:auto;gap:10px}.metric{display:flex;flex-direction:column;min-width:0;min-height:0;padding:12px 15px;border-radius:22px;background:linear-gradient(145deg,var(--metric),var(--glass));border:1px solid var(--glass-border);box-shadow:inset 0 1px 0 var(--glass-border),0 3px 9px rgba(0,0,0,.04)}
+.metric>span{min-height:0;line-height:1.3;font-size:14px;overflow-wrap:anywhere}.metric b{margin-top:4px;padding-top:0;font-size:clamp(20px,5.7vw,28px);font-weight:750;line-height:1.2;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.metric-driver{background:linear-gradient(145deg,var(--accent-soft),var(--glass));border-color:var(--accent)}.metric-driver b{color:var(--accent)}
+.summary-metrics{margin-top:20px}
+@media(max-width:360px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.metric{padding:12px 10px}.calendar-panel{margin-left:-12px;margin-right:-12px}.calendar-grid{gap:3px}.calendar-days{gap:0}}

@@ -12,11 +12,11 @@
   <meta name="format-detection" content="telephone=no">
   <meta name="color-scheme" content="light dark">
   <title>Covoiturage</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=8">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=8">
-  <link rel="manifest" href="manifest.webmanifest?v=8">
-  <link rel="stylesheet" href="styles.css?v=8">
-  <script defer="" src="app.js?v=8"></script>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=10">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=10">
+  <link rel="manifest" href="manifest.webmanifest?v=10">
+  <link rel="stylesheet" href="styles.css?v=10">
+  <script defer="" src="app.js?v=10"></script>
 </head>
 <body data-view="today"><div id="status" class="status-toast" role="status" aria-live="polite"></div>
   <div class="ambient" aria-hidden="true"></div>
@@ -68,9 +68,9 @@
       <article class="card content-card action-card">
         <div class="metrics">
           <div class="metric"><span>Passagers</span><b id="count">0</b></div>
-          <div class="metric"><span>Part conducteur estimée</span><b id="perPerson">0 €</b></div>
+          <div class="metric metric-driver"><span>Part conducteur</span><b id="perPerson">0 €</b></div>
           <div class="metric"><span>Participation prévue</span><b id="received">0 €</b></div>
-          <div class="metric"><span>Coût trajet</span><b id="tripCost">0 €</b></div>
+          <div class="metric"><span>Coût du trajet</span><b id="tripCost">0 €</b></div>
         </div>
         <div class="actions">
           <button class="btn primary has-icon" id="save" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"></path></svg></span><span class="btn-label" id="saveTripLabel">Enregistrer le trajet</span></button>
@@ -129,14 +129,14 @@
           </div>
           <button class="btn secondary compact" id="resetSummaryFilters" type="button">Réinitialiser la période</button>
         </details>
+        <p class="small" id="summaryScope"></p>
+        <div id="personSummary" class="summary-list"></div>
         <div class="metrics summary-metrics">
           <div class="metric"><span>Trajets</span><b id="sTrips">0</b></div>
           <div class="metric"><span>Versements reçus</span><b id="sReceived">0 €</b></div>
           <div class="metric"><span>Coût estimé</span><b id="sCost">0 €</b></div>
-          <div class="metric"><span>Reste conducteur</span><b id="sDriver">0 €</b></div>
+          <div class="metric metric-driver"><span>Reste conducteur</span><b id="sDriver">0 €</b></div>
         </div>
-        <p class="small" id="summaryScope"></p>
-        <div id="personSummary" class="summary-list"></div>
       </article>
 
       <div id="paymentFormHome" hidden="">
@@ -213,7 +213,7 @@
         <div class="privacy-note">
         <h3 class="subsection-title">Confidentialité</h3>
         <p class="small">Les trajets, versements et réglages restent sur cet appareil. L’application n’envoie pas ces données vers un serveur.</p>
-        <div class="version-badge">Version 8</div>
+        <div class="version-badge">Version 10</div>
         </div>
       </article>
     </section>
