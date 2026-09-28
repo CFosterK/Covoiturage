@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 12;
+const APP_VERSION = 14;
 const DATA_FORMAT = 'covoiturage-itineraires';
 const SCHEMA_VERSION = 4;
 const STORAGE_KEY = 'covoiturageItinerairesDataV1';
@@ -808,11 +808,10 @@ function updateEnergyLabels(){
   const electric=$('#energyType').value==='electric';
   $('#consumptionLabel').textContent=electric?'Consommation (kWh/100 km)':'Consommation (L/100 km)';
   $('#energyPriceLabel').textContent=electric?'Prix énergie / carburant (€/kWh)':'Prix énergie / carburant (€/L)';
-  $('#energyHelp').textContent=electric?'Le calcul utilise la consommation en kWh/100 km et le prix de l’électricité en €/kWh.':'Le calcul utilise la consommation en L/100 km et le prix du carburant en €/L.';
 }
 
 function updateVehicleCostHelp(){
-  $('#vehicleCostHelp').textContent='Ce coût par kilomètre couvre notamment l’usure, l’entretien et la décote du véhicule. Il s’applique à tous les itinéraires.';
+  $('#vehicleCostHelp').textContent='Ce coût par kilomètre couvre notamment l’usure, l’entretien et la décote du véhicule.';
 }
 
 function renderPeopleSettings(){
@@ -848,7 +847,7 @@ function renderBackupStatus(){
 
 function renderTariffTable(){
   const r=routeById($('#tariffRoute').value),capacity=Number($('#maxPassengers').value);
-  $('#tariffTable').innerHTML=r&&!r.archived&&!r.deleted?`<table><caption class="small">Tarifs par passager · ${escapeHTML(r.name)}</caption><thead><tr><th scope="col">Passagers</th><th scope="col">Aller simple</th><th scope="col">Aller-retour</th></tr></thead><tbody>${Array.from({length:capacity},(_,i)=>{const n=i+1,cost=r.distance*(data.settings.consumption/100*data.settings.energyPrice+data.settings.vehicleCostPerKm)+r.toll,amount=roundedShare(cost*2,n,1),single=amount/2;return `<tr><th scope="row">${n}</th><td>${paymentEuro(single)}</td><td>${paymentEuro(amount)}</td></tr>`;}).join('')}</tbody></table>`:'<p class="small">Ajoutez ou réactivez un itinéraire pour consulter ses tarifs.</p>';
+  $('#tariffTable').innerHTML=r&&!r.archived&&!r.deleted?`<table><caption class="small">Tarif par passager</caption><thead><tr><th scope="col">Passagers</th><th scope="col">Aller simple</th><th scope="col">Aller-retour</th></tr></thead><tbody>${Array.from({length:capacity},(_,i)=>{const n=i+1,cost=r.distance*(data.settings.consumption/100*data.settings.energyPrice+data.settings.vehicleCostPerKm)+r.toll,amount=roundedShare(cost*2,n,1),single=amount/2;return `<tr><th scope="row">${n}</th><td>${paymentEuro(single)}</td><td>${paymentEuro(amount)}</td></tr>`;}).join('')}</tbody></table>`:'<p class="small">Ajoutez ou réactivez un itinéraire pour consulter ses tarifs.</p>';
 }
 function renderTariff(){
   const choice=$('#tariffRoute').value;
