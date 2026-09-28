@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 11;
+const APP_VERSION = 12;
 const DATA_FORMAT = 'covoiturage-itineraires';
 const SCHEMA_VERSION = 4;
 const STORAGE_KEY = 'covoiturageItinerairesDataV1';
@@ -647,7 +647,7 @@ function renderHistory(){
         t.distance===null?null:`Distance : ${decimal(t.distance)} km`,
         t.energyUsed===null||!t.energyType?null:`Énergie : ${decimal(t.energyUsed,2)} ${energy}`
       ].filter(Boolean).map(escapeHTML).join('<br>');
-      return `<details class="history-item" data-id="${t.id}"${expanded.has(t.id)?' open':''}><summary><span class="history-overview"><b>${escapeHTML(dateLabel)}</b><span class="history-names">${escapeHTML(names)}</span><span class="small">${escapeHTML(t.routeName)} · ${directionLabel(t.direction)}</span><span class="small">Participation prévue : <strong>${paymentEuro(tripParticipation(t))}</strong></span></span><span class="history-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m6 9 6 6 6-6"/></svg></span></summary><div class="history-detail"><p class="small">${snapshot}</p><div class="history-actions"><button class="btn secondary compact has-icon edit-trip" type="button" data-id="${t.id}">${UI_ICONS.edit}<span class="btn-label">Modifier</span></button><button class="btn danger compact has-icon delete-trip" type="button" data-id="${t.id}">${UI_ICONS.trash}<span class="btn-label">Supprimer</span></button></div></div></details>`;
+      return `<details class="history-item" data-id="${t.id}"${expanded.has(t.id)?' open':''}><summary><span class="history-overview"><b>${escapeHTML(dateLabel)}</b><span class="history-names">${escapeHTML(names)}</span><span class="small">${escapeHTML(t.routeName)}${t.direction==='oneway'?' · '+directionLabel(t.direction):''}</span><span class="small">Participation prévue : <strong>${paymentEuro(tripParticipation(t))}</strong></span></span><span class="history-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m6 9 6 6 6-6"/></svg></span></summary><div class="history-detail"><p class="small">${snapshot}</p><div class="history-actions"><button class="btn secondary compact has-icon edit-trip" type="button" data-id="${t.id}">${UI_ICONS.edit}<span class="btn-label">Modifier</span></button><button class="btn danger compact has-icon delete-trip" type="button" data-id="${t.id}">${UI_ICONS.trash}<span class="btn-label">Supprimer</span></button></div></div></details>`;
     }).join('')}</section>`;
   }).join(''):`<p class="small">${data.trips.length?'Aucun trajet pour ces filtres.':'Aucun trajet enregistré.'}</p>`;
 }
