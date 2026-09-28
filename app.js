@@ -1,14 +1,14 @@
 'use strict';
 
-const APP_VERSION = 10;
+const APP_VERSION = 11;
 const DATA_FORMAT = 'covoiturage-itineraires';
-const SCHEMA_VERSION = 3;
+const SCHEMA_VERSION = 4;
 const STORAGE_KEY = 'covoiturageItinerairesDataV1';
 const MAX_BACKUP_SIZE = 20_000_000;
 const MAX_PEOPLE = 30;
 const BACKUP_REMINDER_DAYS = 30;
 const DEFAULT_DATA = Object.freeze({
-  format:'covoiturage-itineraires',schema:3,
+  format:'covoiturage-itineraires',schema:4,
   settings:{consumption:6,energyPrice:2.31,energyType:'fuel',vehicleCostPerKm:0.10,theme:'system',maxPassengers:3},
   routes:[],lastRouteId:null,
   people:[],
@@ -73,25 +73,25 @@ function validDataShape(v){
   const name=n=>typeof n==='string'&&n.length>0&&n.length<=40&&cleanName(n,'')===n;
   const id=n=>typeof n==='string'&&/^[A-Za-z0-9_-]{1,80}$/.test(n);
   const unique=arr=>new Set(arr).size===arr.length;
-  if(!isRecord(v)||v.format!==DATA_FORMAT||![1,2,3].includes(v.schema)||!isRecord(v.settings)||!Array.isArray(v.people)||v.people.length>MAX_PEOPLE||!v.people.every(name)||!Array.isArray(v.archivedPeople)||!Array.isArray(v.routes)||!Array.isArray(v.trips)||!Array.isArray(v.payments))return false;
+  if(!isRecord(v)||v.format!==DATA_FORMAT||![1,2,3,4].includes(v.schema)||!isRecord(v.settings)||!Array.isArray(v.people)||v.people.length>MAX_PEOPLE||!v.people.every(name)||!Array.isArray(v.archivedPeople)||!Array.isArray(v.routes)||!Array.isArray(v.trips)||!Array.isArray(v.payments))return false;
   const person=i=>Number.isInteger(i)&&i>=0&&i<v.people.length;
   if(!v.archivedPeople.every(person)||!unique(v.archivedPeople))return false;
   const st=v.settings;
   if(!number(st.consumption,0,100)||!number(st.energyPrice,0,20)||!number(st.vehicleCostPerKm,0,10)||!['fuel','electric'].includes(st.energyType)||!['system','light','dark'].includes(st.theme))return false;
-  if(v.schema===3&&(!Number.isInteger(st.maxPassengers)||st.maxPassengers<1||st.maxPassengers>8))return false;
+  if(v.schema>=3&&(!Number.isInteger(st.maxPassengers)||st.maxPassengers<1||st.maxPassengers>8))return false;
   if(v.schema===2&&(![1,0.5,0.01].includes(st.rounding)||!Number.isInteger(st.maxPassengers)||st.maxPassengers<1||st.maxPassengers>8))return false;
   if(!v.routes.every(r=>isRecord(r)&&id(r.id)&&name(r.name)&&number(r.distance,0.001,2000)&&number(r.toll,0,1000)&&typeof r.archived==='boolean'&&(r.deleted===undefined||typeof r.deleted==='boolean')&&(!r.deleted||r.archived))||!unique(v.routes.map(r=>r.id))||!unique(v.routes.filter(r=>!r.deleted).map(r=>r.name.normalize('NFC').toLocaleLowerCase('fr-FR'))))return false;
   const routeIds=new Set(v.routes.map(r=>r.id));
   if(v.lastRouteId!==null&&!routeIds.has(v.lastRouteId))return false;
   if(v.lastBackupAt!==null&&safeIsoDateTime(v.lastBackupAt)!==v.lastBackupAt)return false;
-  if(!v.trips.every(t=>isRecord(t)&&id(t.id)&&safeDate(t.date,null)===t.date&&Array.isArray(t.people)&&t.people.length<=(v.schema===1?3:16)&&t.people.every(person)&&unique(t.people)&&routeIds.has(t.routeId)&&name(t.routeName)&&['oneway','roundtrip'].includes(t.direction)&&safeIsoDateTime(t.createdAt)===t.createdAt&&(t.pricing===undefined||(v.schema===3&&t.pricing==='automatic-v4'&&Array.isArray(t.contributions)))&&(t.contributions===undefined?number(t.rate,0,200000):validContributions(t))&&number(t.cost,0,200000)&&number(t.distance,0.001,4000)&&number(t.toll,0,2000)&&number(t.consumption,0,100)&&number(t.energyPrice,0,20)&&number(t.vehicleCostPerKm,0,10)&&number(t.energyUsed,0,4000)&&['fuel','electric'].includes(t.energyType))||!unique(v.trips.map(t=>t.id)))return false;
+  if(!v.trips.every(t=>isRecord(t)&&id(t.id)&&safeDate(t.date,null)===t.date&&Array.isArray(t.people)&&t.people.length<=(v.schema===1?3:16)&&t.people.every(person)&&unique(t.people)&&routeIds.has(t.routeId)&&name(t.routeName)&&['oneway','roundtrip'].includes(t.direction)&&safeIsoDateTime(t.createdAt)===t.createdAt&&(t.pricing===undefined||(((v.schema>=3&&t.pricing==='automatic-v4')||(v.schema===4&&t.pricing==='per-half-v11'))&&Array.isArray(t.contributions)))&&(t.contributions===undefined?number(t.rate,0,200000):validContributions(t))&&number(t.cost,0,200000)&&number(t.distance,0.001,4000)&&number(t.toll,0,2000)&&number(t.consumption,0,100)&&number(t.energyPrice,0,20)&&number(t.vehicleCostPerKm,0,10)&&number(t.energyUsed,0,4000)&&['fuel','electric'].includes(t.energyType))||!unique(v.trips.map(t=>t.id)))return false;
   return v.payments.every(p=>isRecord(p)&&id(p.id)&&person(p.person)&&number(p.amount,0.01,1000000)&&Math.abs(p.amount*100-Math.round(p.amount*100))<0.000001&&safeDate(p.date,null)===p.date)&&unique(v.payments.map(p=>p.id));
 }
 function validContributions(t){
   const money=n=>typeof n==='number'&&Number.isFinite(n)&&n>=0&&n<=200000&&Math.abs(n*100-Math.round(n*100))<0.000001;
-  if(t.pricing==='automatic-v4'){
+  if(['automatic-v4','per-half-v11'].includes(t.pricing)){
     if(t.direction!=='roundtrip'||!Number.isInteger(t.capacity)||t.capacity<1||t.capacity>8||!Array.isArray(t.contributions)||t.contributions.length!==t.people.length||t.people.length>t.capacity)return false;
-    return t.contributions.every(c=>isRecord(c)&&t.people.includes(c.person)&&['both','single'].includes(c.presence)&&money(c.amount)&&Math.abs(c.amount/(c.presence==='both'?1:0.5)-Math.round(c.amount/(c.presence==='both'?1:0.5)))<0.000001&&c.outbound===undefined&&c.return===undefined)&&new Set(t.contributions.map(c=>c.person)).size===t.people.length;
+    return t.contributions.every(c=>isRecord(c)&&t.people.includes(c.person)&&['both','single'].includes(c.presence)&&money(c.amount)&&Math.abs(c.amount/(t.pricing==='automatic-v4'&&c.presence==='both'?1:0.5)-Math.round(c.amount/(t.pricing==='automatic-v4'&&c.presence==='both'?1:0.5)))<0.000001&&c.outbound===undefined&&c.return===undefined)&&new Set(t.contributions.map(c=>c.person)).size===t.people.length;
   }
   if(![1,0.5,0.01].includes(t.rounding)||!Number.isInteger(t.capacity)||t.capacity<1||t.capacity>8||!Array.isArray(t.contributions)||t.contributions.length!==t.people.length)return false;
   if(!t.contributions.every(c=>isRecord(c)&&t.people.includes(c.person)&&['outbound','return','both'].includes(c.presence)&&money(c.outbound)&&money(c.return)&&money(c.amount)&&Math.abs(c.amount-c.outbound-c.return)<0.000001&&(c.presence!=='outbound'||c.return===0)&&(c.presence!=='return'||c.outbound===0)&&(t.direction!=='oneway'||c.presence==='outbound')))return false;
@@ -100,7 +100,7 @@ function validContributions(t){
 function normalizeData(raw){
   const next=JSON.parse(JSON.stringify(raw));
   if(next.schema===1){next.schema=2;next.settings.rounding=1;next.settings.maxPassengers=3;}
-  next.schema=3;delete next.settings.rounding;
+  next.schema=4;delete next.settings.rounding;
   return next;
 }
 function normalizationWarnings(raw){return validDataShape(raw)?[]:['Le format ou les valeurs sont invalides. Aucune donnée ne sera remplacée.'];}
@@ -190,10 +190,12 @@ function roundedShare(cost,count,step){
   const units=cost/(count+1)/step;
   return Math.round((Math.floor(units+0.5+1e-10)*step)*100)/100;
 }
-// V4 shares a theoretical roundtrip; a single journey is half that share before rounding.
+// Singles share one half; roundtrip passengers share both. Each half uses half the rounded roundtrip tariff for its passenger count.
 function calculateParticipation(cost,choices,capacity){
   const count=choices.length;
-  const contributions=choices.map(c=>({...c,amount:roundedShare(c.presence==='both'?cost:cost/2,count,c.presence==='both'?1:0.5)}));
+  const bothCount=choices.filter(c=>c.presence==='both').length;
+  const sharedHalf=roundedShare(cost,count,1)/2,otherHalf=roundedShare(cost,bothCount,1)/2;
+  const contributions=choices.map(c=>({...c,amount:sharedHalf+(c.presence==='both'?otherHalf:0)}));
   const total=contributions.reduce((n,c)=>n+Math.round(c.amount*100),0)/100;
   return {contributions,total,driver:cost-total,overflow:count>capacity};
 }
@@ -202,7 +204,7 @@ function tripPresence(t,i){return t.contributions?.find(c=>c.person===i)?.presen
 function tripParticipation(t){return t.people.reduce((sum,i)=>sum+Math.round(tripContribution(t,i)*100),0)/100;}
 function currentParticipation(){return calculateParticipation(tripCost(),selectedPassengers().map(person=>({person,presence:presenceOf(person)})),data.settings.maxPassengers);}
 function capacityBlocked(){const original=editingTrip();return !(original&&!shouldRecalculateTrip(original))&&currentParticipation().overflow;}
-function calculationSnapshot(){return {cost:tripCost(),contributions:currentParticipation().contributions,pricing:'automatic-v4',capacity:data.settings.maxPassengers};}
+function calculationSnapshot(){return {cost:tripCost(),contributions:currentParticipation().contributions,pricing:'per-half-v11',capacity:data.settings.maxPassengers};}
 function renderRouteChoice(){
   ensureRouteChoice();
   $('#routeTitle').textContent=routeById(selectedRouteId)?.name||'Choisir un itinéraire';
@@ -343,7 +345,7 @@ function renderTripMode(){
   $('#saveTripLabel').textContent=original?'Enregistrer les modifications':'Enregistrer le trajet';
   $('#cancelEdit').classList.toggle('hidden',!original);
   $('#editNotice').classList.toggle('hidden',!original);
-  if(original) $('#editNotice').textContent=shouldRecalculateTrip(original)?'Ce trajet sera recalculé selon les tarifs automatiques V4, avec un aller-retour conducteur. Les autres trajets restent inchangés.':'Sans changement, les montants et les présences historiques sont conservés. Modifier la date, les passagers, leur participation ou l’itinéraire recalcule uniquement ce trajet selon les tarifs V4 (conducteur en aller-retour).';
+  if(original) $('#editNotice').textContent=shouldRecalculateTrip(original)?'Ce trajet sera recalculé selon les tarifs V11 calculés par moitié de trajet, avec un aller-retour conducteur. Les autres trajets restent inchangés.':'Sans changement, les montants et les présences historiques sont conservés. Modifier la date, les passagers, leur participation ou l’itinéraire recalcule uniquement ce trajet selon les tarifs V11 par moitié de trajet (conducteur en aller-retour).';
 }
 
 function startEditTrip(id){
@@ -846,7 +848,7 @@ function renderBackupStatus(){
 
 function renderTariffTable(){
   const r=routeById($('#tariffRoute').value),capacity=Number($('#maxPassengers').value);
-  $('#tariffTable').innerHTML=r&&!r.archived&&!r.deleted?`<table><caption class="small">Tarifs par passager · ${escapeHTML(r.name)}</caption><thead><tr><th scope="col">Passagers</th><th scope="col">Aller simple</th><th scope="col">Aller-retour</th></tr></thead><tbody>${Array.from({length:capacity},(_,i)=>{const n=i+1,cost=r.distance*(data.settings.consumption/100*data.settings.energyPrice+data.settings.vehicleCostPerKm)+r.toll,amount=roundedShare(cost*2,n,1),single=roundedShare(cost,n,0.5);return `<tr><th scope="row">${n}</th><td>${paymentEuro(single)}</td><td>${paymentEuro(amount)}</td></tr>`;}).join('')}</tbody></table>`:'<p class="small">Ajoutez ou réactivez un itinéraire pour consulter ses tarifs.</p>';
+  $('#tariffTable').innerHTML=r&&!r.archived&&!r.deleted?`<table><caption class="small">Tarifs par passager · ${escapeHTML(r.name)}</caption><thead><tr><th scope="col">Passagers</th><th scope="col">Aller simple</th><th scope="col">Aller-retour</th></tr></thead><tbody>${Array.from({length:capacity},(_,i)=>{const n=i+1,cost=r.distance*(data.settings.consumption/100*data.settings.energyPrice+data.settings.vehicleCostPerKm)+r.toll,amount=roundedShare(cost*2,n,1),single=amount/2;return `<tr><th scope="row">${n}</th><td>${paymentEuro(single)}</td><td>${paymentEuro(amount)}</td></tr>`;}).join('')}</tbody></table>`:'<p class="small">Ajoutez ou réactivez un itinéraire pour consulter ses tarifs.</p>';
 }
 function renderTariff(){
   const choice=$('#tariffRoute').value;
@@ -1074,7 +1076,7 @@ async function restoreData(file){
   if(!file) return;
   if(file.size>MAX_BACKUP_SIZE) throw new Error('too-large');
   const parsed=JSON.parse(await file.text());
-  if(!isRecord(parsed)||parsed.app!=='Covoiturage'||parsed.format!==DATA_FORMAT||![1,2,3].includes(parsed.schema)||parsed.schema!==parsed.data?.schema||!Number.isInteger(parsed.version)||parsed.version<1||!validDataShape(parsed.data))throw new Error('incompatible-backup');
+  if(!isRecord(parsed)||parsed.app!=='Covoiturage'||parsed.format!==DATA_FORMAT||![1,2,3,4].includes(parsed.schema)||parsed.schema!==parsed.data?.schema||!Number.isInteger(parsed.version)||parsed.version<1||!validDataShape(parsed.data))throw new Error('incompatible-backup');
   if(Number(parsed.version)>APP_VERSION)throw new Error('future-version');
   const next=normalizeData(parsed.data);
   if(!confirm(`Restaurer cette sauvegarde (${next.routes.filter(r=>!r.deleted).length} itinéraires, ${next.trips.length} trajets, ${next.payments.length} versements) ? Les données actuelles seront remplacées.`))return;

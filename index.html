@@ -12,11 +12,11 @@
   <meta name="format-detection" content="telephone=no">
   <meta name="color-scheme" content="light dark">
   <title>Covoiturage</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=10">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=10">
-  <link rel="manifest" href="manifest.webmanifest?v=10">
-  <link rel="stylesheet" href="styles.css?v=10">
-  <script defer="" src="app.js?v=10"></script>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=11">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=11">
+  <link rel="manifest" href="manifest.webmanifest?v=11">
+  <link rel="stylesheet" href="styles.css?v=11">
+  <script defer="" src="app.js?v=11"></script>
 </head>
 <body data-view="today"><div id="status" class="status-toast" role="status" aria-live="polite"></div>
   <div class="ambient" aria-hidden="true"></div>
@@ -191,7 +191,7 @@
 
 
       
-<article class="card content-card"><h2 class="date">Tarifs</h2><div class="field"><label for="maxPassengers">Passagers maximum, hors conducteur</label><select id="maxPassengers"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select></div><p class="small">Aller-retour : part totale arrondie à l’euro (dès 50 centimes, euro supérieur). Aller simple : demi-part théorique arrondie à 0,50 € (dès 25 centimes, demi-euro supérieur).</p><p class="small">Le coût aller-retour est partagé entre le conducteur et tous les passagers sélectionnés. Le conducteur assume le reste après les participations.</p><p id="tariffError" class="small payment-error" role="alert"></p><button class="btn primary has-icon" id="saveTariff" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"/></svg></span><span class="btn-label">Enregistrer le tarif</span></button><div class="field tariff-route-field"><label for="tariffRoute">Itinéraire à consulter</label><select id="tariffRoute"></select></div><div id="tariffTable"></div><p class="small">Estimation pour le nombre total de passagers sélectionnés, quelle que soit leur participation. Le conducteur effectue toujours un aller-retour. Les trajets déjà enregistrés restent inchangés.</p></article>
+<article class="card content-card"><h2 class="date">Tarifs</h2><div class="field"><label for="maxPassengers">Passagers maximum, hors conducteur</label><select id="maxPassengers"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select></div><p class="small">Pour chaque moitié du trajet, le tarif aller-retour correspondant au nombre de passagers présents est arrondi à l’euro (dès 50 centimes, euro supérieur), puis divisé par deux.</p><p class="small">Les passagers en aller simple voyagent ensemble sur une même moitié du trajet. Un passager en aller-retour paie la somme des deux demi-tarifs, sans nouvel arrondi. Le conducteur est inclus dans chaque partage et assume le reste après les participations.</p><p id="tariffError" class="small payment-error" role="alert"></p><button class="btn primary has-icon" id="saveTariff" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"/></svg></span><span class="btn-label">Enregistrer le tarif</span></button><div class="field tariff-route-field"><label for="tariffRoute">Itinéraire à consulter</label><select id="tariffRoute"></select></div><div id="tariffTable"></div><p class="small">La colonne Aller-retour suppose le même nombre de passagers dans les deux sens. Si l’effectif change, additionnez les demi-tarifs correspondant à chaque moitié. Le conducteur effectue toujours un aller-retour. Les trajets déjà enregistrés restent inchangés.</p></article>
 
       <article class="card content-card">
         <h2 class="date">Sauvegarde des données</h2>
@@ -213,7 +213,7 @@
         <div class="privacy-note">
         <h3 class="subsection-title">Confidentialité</h3>
         <p class="small">Les trajets, versements et réglages restent sur cet appareil. L’application n’envoie pas ces données vers un serveur.</p>
-        <div class="version-badge">Version 10</div>
+        <div class="version-badge">Version 11</div>
         </div>
       </article>
     </section>
