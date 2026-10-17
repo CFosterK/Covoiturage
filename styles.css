@@ -167,13 +167,8 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 
 .energy-help{margin:-2px 0 14px}
 
-/* V30 — statistiques, sauvegarde et gestion dynamique des passagers */
 .people-settings-list{margin:4px 0 12px}
-.person-setting-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end;padding:8px 0;border-bottom:1px solid var(--hairline)}
-.person-setting-row:last-child{border-bottom:0}
-.person-setting-row .field{margin:0}
-.person-setting-row .btn{width:auto;min-width:92px;margin-bottom:0}
-.person-add-block{margin-top:16px;padding-top:4px;border-top:1px solid var(--hairline)}
+
 .archived-section{margin-top:18px;padding-top:4px;border-top:1px solid var(--hairline)}
 .subsection-title{margin:12px 0 4px;font-size:16px;letter-spacing:-.01em}
 .archived-person{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--hairline)}
@@ -184,7 +179,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .backup-status{margin:12px 0 4px;padding:11px 13px;border:1px solid var(--glass-border);border-radius:16px;background:var(--glass);color:var(--muted);font-size:13px;line-height:1.4}
 .backup-status:empty{display:none}
 .backup-status.warning{border-color:color-mix(in srgb,#c98a25 45%,var(--glass-border));background:color-mix(in srgb,#c98a25 10%,var(--glass));color:var(--text)}
-@media(max-width:420px){.person-setting-row{grid-template-columns:1fr}.person-setting-row .btn{width:100%}.archived-person{align-items:stretch;flex-direction:column}.archived-person .btn{width:100%}}
+@media(max-width:420px){.archived-person{align-items:stretch;flex-direction:column}.archived-person .btn{width:100%}}
 
 .tab-icon{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;opacity:.92;transition:transform .18s ease,color .18s ease,opacity .18s ease}
 .tab-icon svg{display:block;width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;overflow:visible}
@@ -196,8 +191,6 @@ html[data-theme="dark"] .tab.active .tab-icon{color:var(--accent-2)}
 .archived-person .btn.danger{min-width:86px}
 @media(max-width:520px){.tab-icon{width:24px;height:24px}.tab-icon svg{width:22px;height:22px}.tab-label{font-size:11px}}
 
-
-/* V34 — ergonomie et harmonisation des actions */
 .btn.has-icon{display:inline-flex;align-items:center;justify-content:center;gap:9px}
 .btn-icon{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;flex:0 0 22px}
 .btn-icon svg{display:block;width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
@@ -206,9 +199,7 @@ html[data-theme="dark"] .tab.active .tab-icon{color:var(--accent-2)}
 .history-actions{display:flex;justify-content:flex-end}
 .history-actions .btn{width:auto}
 
-
-
-.person-setting-row .btn.has-icon,.archived-person-actions .btn.has-icon{white-space:nowrap}
+.archived-person-actions .btn.has-icon{white-space:nowrap}
 .file-picker-face{gap:9px}
 .data-actions .btn{min-height:52px}
 .toolbar-button.has-icon{justify-self:stretch}
@@ -224,7 +215,6 @@ html[data-theme="dark"] .tab.active .tab-icon{color:var(--accent-2)}
 
 @media(max-width:520px){.date{font-size:22px}}
 
-/* V38 — keep long names and payment actions readable on narrow screens. */
 .person input{flex-shrink:0}
 .person span,.summaryPerson>span,.payment-item>span{min-width:0;overflow-wrap:anywhere}
 .summaryPerson>span:first-child{flex:1}
@@ -240,8 +230,7 @@ html[data-theme="dark"] .tab.active .tab-icon{color:var(--accent-2)}
   .payment-value{width:100%;justify-content:space-between}
 }
 
-
-/* Trip editor, history and grouped settings. */
+/* Trip editor,history and grouped settings. */
 .btn:disabled{opacity:.5;cursor:default}
 .edit-notice{padding:12px;border-radius:14px;background:var(--accent-soft);font-size:14px;line-height:1.45}
 .quick-payment{width:100%!important}
@@ -261,12 +250,10 @@ html[data-theme="dark"] .tab.active .tab-icon{color:var(--accent-2)}
 .history-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
 .history-actions .btn{width:100%}
 summary:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:8px}
-.tariff-section,.privacy-note{margin-top:18px;padding-top:10px;border-top:1px solid var(--hairline)}
+.privacy-note{margin-top:18px;padding-top:10px;border-top:1px solid var(--hairline)}
 .archived-section>summary{padding:14px 0;min-height:48px;font-size:15px;font-weight:700;cursor:pointer;overflow-wrap:anywhere}
 @media(max-width:360px){.history-actions{grid-template-columns:1fr}}
 
-
-/* V44 — restore the V42 banner position, raised 10px and retain its spacing to the first card. */
 .top{margin-bottom:calc(-24px - clamp(14px,5vw,30px))}
 .app-banner{transform:translateY(-10px);pointer-events:none}
 .summary-entry{padding-bottom:12px;border-bottom:1px solid var(--hairline)}
@@ -282,7 +269,7 @@ summary:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-
 body.keyboard-editing .glass-nav{visibility:hidden;pointer-events:none}
 body.keyboard-editing .glass-nav .tab{pointer-events:none}
 
-/* Compact, independent filters for the two histories. */
+/* Compact,independent filters for the two histories. */
 .history-filters{margin:12px 0;border-bottom:1px solid var(--hairline);padding-bottom:12px}
 .history-filters>summary{min-height:44px;cursor:pointer;font-size:15px;font-weight:700;padding:12px 0;color:var(--accent)}
 .history-filter-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px}
@@ -290,7 +277,6 @@ body.keyboard-editing .glass-nav .tab{pointer-events:none}
 .clear-history{margin-top:20px}
 @media(max-width:420px){.history-filter-grid{grid-template-columns:1fr}}
 
-/* V48: one payment form mounted directly below the selected passenger. */
 .inline-payment{margin:12px 0 4px;padding:4px 0 0;border-top:1px solid var(--hairline)}
 .inline-payment .btn+.btn{margin-top:10px}
 .payment-error{color:var(--danger)}
@@ -299,7 +285,6 @@ body.keyboard-editing .glass-nav .tab{pointer-events:none}
 .summary-archived>summary{min-height:44px;padding:12px 0;cursor:pointer;color:var(--muted);font-weight:650}
 .quick-payment[aria-expanded="true"]{background:var(--accent-soft)}
 
-/* V49: banner from the approved preview, with a fade into the real page background. */
 .top{margin:0 -12px 0}
 .app-banner{transform:none;filter:none;border:0;border-radius:0;mask-image:linear-gradient(to bottom,#000 0%,#000 65%,rgba(0,0,0,.95) 73%,rgba(0,0,0,.65) 84%,rgba(0,0,0,.2) 94%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 65%,rgba(0,0,0,.95) 73%,rgba(0,0,0,.65) 84%,rgba(0,0,0,.2) 94%,transparent 100%)}
 .person-management-row{padding:16px 0;border-bottom:1px solid var(--hairline)}
@@ -311,7 +296,6 @@ body.keyboard-editing .glass-nav .tab{pointer-events:none}
 .person-duplicates{padding:8px 0}
 .person-duplicates[hidden],#personEditorHome[hidden]{display:none}
 
-/* V52: natural page scrolling over an immobile background. */
 :root{--content:rgba(249,251,255,.90);--banner-height:calc(min(100vw,780px) / 3)}
 html[data-theme="dark"]{--content:rgba(24,29,37,.90)}
 body{isolation:isolate;padding-top:calc(env(safe-area-inset-top,0px) + var(--banner-height))}
@@ -327,7 +311,7 @@ html.pwa-installed,html.pwa-installed body{touch-action:pan-x pan-y}
   html[data-theme="dark"] .card{background:rgba(24,29,37,.98)}
 }
 
-/* Passenger blocks retained; buttons use their original V51 appearance. */
+/* Passenger management blocks. */
 :root{--passenger-surface:rgba(232,239,248,.94)}
 html[data-theme="dark"]{--passenger-surface:rgba(37,48,62,.94)}
 .person-management-row{padding:16px;margin:12px 0;border:1px solid var(--hairline);border-radius:20px;background:var(--passenger-surface)}
@@ -338,7 +322,6 @@ html[data-theme="dark"]{--passenger-surface:rgba(37,48,62,.94)}
 .person-management-row .person-editor{margin-bottom:0}
 @media(max-width:360px){.person-management-row{padding:12px}.person-management-actions .btn{min-width:100px;padding-left:8px;padding-right:8px}}
 
-/* V54: each balance passenger contains its own payment action and form. */
 .summary-entry,.summary-entry:last-child{padding:16px;margin:12px 0;border:1px solid var(--hairline);border-radius:20px;background:var(--passenger-surface)}
 .summary-entry:last-child{margin-bottom:0}
 .summary-entry .summaryPerson{padding-top:0;flex-wrap:wrap}
@@ -347,7 +330,6 @@ html[data-theme="dark"]{--passenger-surface:rgba(37,48,62,.94)}
 .summary-entry .inline-payment{margin-bottom:0}
 @media(max-width:360px){.summary-entry,.summary-entry:last-child{padding:12px}.summary-entry .summaryPerson>span:last-child{flex-basis:100%;text-align:left}}
 
-/* V55: accessible passenger choices and history view switch. */
 .people-list{display:flex;flex-direction:column;gap:10px}
 .person,.person:last-child{position:relative;flex:0 0 auto;width:100%;min-width:0;max-width:100%;padding:12px;border:1px solid var(--hairline);border-radius:18px;background:var(--glass-strong)}
 .person:has(input:checked){background:var(--accent-soft);border-color:var(--accent)}
@@ -362,7 +344,6 @@ html[data-theme="dark"]{--passenger-surface:rgba(37,48,62,.94)}
 .history-switch [aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
 #tripsHistoryCard[hidden],#paymentsHistoryCard[hidden]{display:none}
 
-/* V57: consistent names and a single moving navigation highlight. */
 .person>span,.summary-person-name,.person-management-name{font-family:inherit;font-size:18px;font-weight:750;line-height:1.3}
 .glass-nav .tab{position:relative;z-index:1;transform:none}
 .glass-nav .tab.active{background:transparent;box-shadow:none}
@@ -370,46 +351,29 @@ html[data-theme="dark"]{--passenger-surface:rgba(37,48,62,.94)}
 .nav-indicator{position:absolute;left:0;pointer-events:none;z-index:0;border-radius:19px;background:linear-gradient(180deg,var(--glass-strong),var(--accent-soft));box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 6px 18px rgba(26,54,92,.10);transition:transform 250ms ease-out}
 @media(prefers-reduced-motion:reduce){.nav-indicator{transition:none}}
 
-/* V58: readable closed date fields; native editing stays available on focus. */
-.formatted-date{display:grid;grid-template-columns:minmax(0,1fr);min-width:0;position:relative}
-.formatted-date input,.formatted-date-label{grid-area:1/1;min-width:0;width:100%}
-.formatted-date input{position:relative;z-index:1;height:100%;opacity:0;cursor:pointer}
-.formatted-date-label{display:flex;align-items:center;min-height:50px;padding:12px 38px 12px 14px;border:1px solid var(--field-border);border-radius:16px;background:var(--input);color:var(--text);font-size:16px;line-height:1.4;overflow-wrap:anywhere;pointer-events:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
-
-.formatted-date:focus-within .formatted-date-label{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
-.formatted-date input:focus-visible{opacity:1}
-.formatted-date:has(input:focus-visible) .formatted-date-label{visibility:hidden}
-.formatted-date.date-empty .formatted-date-label{color:var(--field-placeholder,var(--muted))}
 .payment-item>span:first-child{flex:1;min-width:0}.payment-item .small{white-space:normal;overflow-wrap:anywhere}
 
 /* Route controls share the existing surfaces and touch targets. */
 .route-panel{margin:16px 0 20px}.route-toggle{display:flex;justify-content:space-between;text-align:left;gap:14px}.route-toggle span{overflow-wrap:anywhere;min-width:0}.route-toggle svg{width:24px;height:24px;flex:none;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}.route-toggle[aria-expanded="true"] svg{transform:rotate(180deg)}
-#routePanel{padding-top:16px}.direction-options{border:0;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:12px}.direction-options legend{margin-bottom:10px;font-weight:650}.direction-options label{display:flex;gap:8px;align-items:center;min-height:44px;padding:8px;border-radius:12px;background:var(--passenger-surface);flex:1}.direction-options input{width:20px;height:20px;flex:none}.route-meta{margin:8px 0 14px;overflow-wrap:anywhere}#routeEditor .btn,#routePanel .btn{margin-top:10px}#routeName{width:100%}#activeRoutes:empty{display:none}#routeEditorHome[hidden],#routePanel[hidden],#noRoutes[hidden],#archivedRoutesSection[hidden]{display:none!important}
+#routePanel{padding-top:16px}.route-meta{margin:8px 0 14px;overflow-wrap:anywhere}#routeEditor .btn,#routePanel .btn{margin-top:10px}#routeName{width:100%}#activeRoutes:empty{display:none}#routeEditorHome[hidden],#routePanel[hidden],#noRoutes[hidden],#archivedRoutesSection[hidden]{display:none!important}
 
-/* V2: shared selector typography and per-passenger presence. */
-select,.field select,.formatted-date input,.formatted-date-label,input[type="date"],input[type="month"],.route-toggle{font-family:inherit;font-size:16px;font-weight:720}
+select,.field select,input[type="date"],input[type="month"],.route-toggle{font-family:inherit;font-size:16px;font-weight:720}
 .person-trip-row{min-width:0}.person-trip-row .person{margin:0}
 #capacityError:empty{display:none}#addTripPerson{margin-top:4px;margin-bottom:14px}.tariff-route-field{margin-top:20px}#tariffTable table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:14px}#tariffTable caption{text-align:left;padding:10px 0;overflow-wrap:anywhere}#tariffTable th,#tariffTable td{padding:11px 4px;text-align:center;border-bottom:1px solid var(--hairline);overflow-wrap:anywhere}
 
-/* V3: independent compact direction button and shared decorative chevron. */
-.person-header{display:flex;align-items:stretch;gap:8px;min-width:0}.person-header .person{flex:1;min-width:0;width:auto}.person-header .presence-cycle{flex:0 0 96px;width:96px;min-height:50px;padding:9px 7px;display:flex;align-items:center;justify-content:center;gap:5px;border-radius:16px;font-size:14px;font-weight:720}.presence-cycle svg{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}.presence-cycle[hidden],#addTripPerson[hidden],#euroRoundingHelp[hidden]{display:none!important}
-.select-control{position:relative;min-width:0;width:100%}.select-control select,.formatted-date input,.formatted-date-label{padding-right:48px}.control-chevron{position:absolute;right:15px;top:50%;transform:translateY(-50%);width:24px;height:24px;pointer-events:none;color:var(--text);z-index:2}.control-chevron svg{display:block;width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}.formatted-date input::-webkit-calendar-picker-indicator{opacity:0}.select-control:has(select:disabled) .control-chevron{opacity:.5}
+.person-header{display:flex;align-items:stretch;gap:8px;min-width:0}.person-header .person{flex:1;min-width:0;width:auto}.person-header .presence-cycle{flex:0 0 96px;width:96px;min-height:50px;padding:9px 7px;display:flex;align-items:center;justify-content:center;gap:5px;border-radius:16px;font-size:14px;font-weight:720}.presence-cycle svg{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}.presence-cycle[hidden],#addTripPerson[hidden]{display:none!important}
 
-/* V4: always-visible circular participation control, independent of selection. */
 .person-header{align-items:center;gap:12px}.person-header .presence-cycle{flex:0 0 48px;width:48px;height:48px;min-height:48px;padding:11px;border-radius:50%;margin:0}.presence-cycle svg{width:24px;height:24px}.person-header .person{align-self:stretch}.presence-cycle:focus-visible{outline:3px solid var(--accent);outline-offset:3px}#tripRouteAddSlot:empty{display:none}
 
-/* V6: direct route choices and a fixed circular touch target. */
 #routePanel{padding:0;margin-top:10px;border:1px solid var(--glass-border);border-radius:18px;overflow:hidden;background:var(--glass)}
 .route-option{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;margin:0;padding:14px;text-align:left;border:0;border-bottom:1px solid var(--hairline);background:transparent;color:var(--text);font:inherit;cursor:pointer}
 .route-option:last-child{border-bottom:0}.route-option[aria-pressed="true"]{background:var(--accent-soft)}.route-option:hover{background:var(--accent-soft)}.route-option:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}.route-option-copy{flex:1;min-width:0}.route-option-name{display:block;font-size:16px;font-weight:720;overflow-wrap:anywhere}.route-option-detail{display:block;font-size:13px;line-height:1.4;margin-top:5px;color:var(--muted);overflow-wrap:anywhere}.route-option-check{width:24px;height:24px;flex:none;fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;visibility:hidden}.route-option[aria-pressed="true"] .route-option-check{visibility:visible}
 .person-header .presence-cycle{padding:0;border:0;background:transparent;box-shadow:none;transition:none;transform:none!important}.presence-face{display:flex;align-items:center;justify-content:center;width:48px;height:48px;flex:none;border:1px solid var(--glass-border);border-radius:50%;background:var(--glass);box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 8px 20px rgba(22,47,78,.08);pointer-events:none}.presence-cycle:active:not(:disabled) .presence-face{transform:scale(.94);background:var(--accent-soft)}
 @media(prefers-reduced-motion:reduce){.presence-cycle:active:not(:disabled) .presence-face{transform:none}.person-header .presence-cycle:hover{filter:none}}
 
-/* V8: one inline selection pattern; date/month pickers retain their native inputs. */
 .selection-menu{min-width:0;width:100%}.selection-menu>select[hidden]{display:none!important}.selection-trigger{margin:0;font-family:inherit;font-size:16px;font-weight:720}.selection-options{margin-top:10px;border:1px solid var(--glass-border);border-radius:18px;overflow:hidden;background:var(--glass)}.selection-options[hidden]{display:none!important}.selection-options .route-option:disabled{opacity:.5;cursor:default}.selection-trigger:disabled{opacity:.55;cursor:default}
 .field input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),.field input::placeholder{font-family:inherit;font-size:16px;font-weight:720}
 
-/* V9: inline calendars share the selection triggers and the existing value model. */
 .calendar-control{width:100%;min-width:0}.calendar-control>input[hidden]{display:none!important}
 .calendar-trigger{margin:0;font-family:inherit;font-size:16px;font-weight:720}.calendar-trigger span{min-width:0;overflow-wrap:anywhere}
 .calendar-trigger[aria-expanded="true"]>svg,.selection-trigger[aria-expanded="true"]>svg{transform:rotate(180deg)}
@@ -427,5 +391,4 @@ select,.field select,.formatted-date input,.formatted-date-label,input[type="dat
 .summary-metrics{margin-top:20px}
 @media(max-width:360px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.metric{padding:12px 10px}.calendar-panel{margin-left:-12px;margin-right:-12px}.calendar-grid{gap:3px}.calendar-days{gap:0}}
 
-/* V14: recap and actions belong to the trip card. */
 #today .trip-metrics{margin-top:16px}

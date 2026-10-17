@@ -1,6 +1,10 @@
 'use strict';
 
-const APP_VERSION = 14;
+// Numéro visible de la nouvelle série de versions.
+const APP_VERSION = 1;
+// Référence technique des sauvegardes : indépendante du numéro visible.
+// Conserver 14 pour accepter les fichiers des versions antérieures à la renumérotation.
+const BACKUP_VERSION = 14;
 const DATA_FORMAT = 'covoiturage-itineraires';
 const SCHEMA_VERSION = 4;
 const STORAGE_KEY = 'covoiturageItinerairesDataV1';
@@ -29,16 +33,7 @@ const clamp = (value, min, max, fallback=min) => Math.min(max, Math.max(min, fin
 const localISO = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const getToday = () => localISO(new Date());
 const makeId = () => `${Date.now().toString(36)}${crypto.getRandomValues(new Uint32Array(1))[0].toString(36)}`;
-const safeId = value => /^[A-Za-z0-9_-]{1,80}$/.test(String(value||'')) ? String(value) : makeId();
 const isRecord = value => value!==null && typeof value==='object' && !Array.isArray(value);
-const optionalNumber = (value,max) => isNumeric(value) ? clamp(value,0,max,0) : null;
-const personIndex = value => isNumeric(value) && Number.isInteger(Number(value)) ? Number(value) : -1;
-function uniqueId(value,seen){
-  let id=safeId(value);
-  while(seen.has(id)) id=makeId();
-  seen.add(id);
-  return id;
-}
 const safeDate = (value, fallback=getToday()) => {
   const s=String(value||'');
   if(!/^\d{4}-\d{2}-\d{2}$/.test(s)) return fallback;
@@ -345,7 +340,7 @@ function renderTripMode(){
   $('#saveTripLabel').textContent=original?'Enregistrer les modifications':'Enregistrer le trajet';
   $('#cancelEdit').classList.toggle('hidden',!original);
   $('#editNotice').classList.toggle('hidden',!original);
-  if(original) $('#editNotice').textContent=shouldRecalculateTrip(original)?'Ce trajet sera recalculé selon les tarifs V11 calculés par moitié de trajet, avec un aller-retour conducteur. Les autres trajets restent inchangés.':'Sans changement, les montants et les présences historiques sont conservés. Modifier la date, les passagers, leur participation ou l’itinéraire recalcule uniquement ce trajet selon les tarifs V11 par moitié de trajet (conducteur en aller-retour).';
+  if(original) $('#editNotice').textContent=shouldRecalculateTrip(original)?'Ce trajet sera recalculé selon les tarifs calculés par moitié de trajet, avec un aller-retour conducteur. Les autres trajets restent inchangés.':'Sans changement, les montants et les présences historiques sont conservés. Modifier la date, les passagers, leur participation ou l’itinéraire recalcule uniquement ce trajet selon les tarifs par moitié de trajet (conducteur en aller-retour).';
 }
 
 function startEditTrip(id){
@@ -416,9 +411,6 @@ function fullMonth(value){
   return /^[1-9]\d{3}-(0[1-9]|1[0-2])$/.test(value)?upperFirst(new Date(value+'-01T12:00:00').toLocaleDateString('fr-FR',{month:'long',year:'numeric'})):'';
 }
 const CONTROL_CHEVRON='<svg viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
-function appendControlChevron(wrapper){
-  const icon=document.createElement('span');icon.className='control-chevron';icon.setAttribute('aria-hidden','true');icon.innerHTML=CONTROL_CHEVRON;wrapper.append(icon);
-}
 // Native selects remain the value model; accessible buttons are their visible interface.
 function closeSelectionMenus(restoreFocus=false){
   closeCalendars(restoreFocus);
@@ -1054,7 +1046,7 @@ async function backupData(){
   }
   const backupAt=new Date().toISOString();
   const payloadData={...data,lastBackupAt:backupAt};
-  const payload={app:'Covoiturage',format:DATA_FORMAT,schema:SCHEMA_VERSION,version:APP_VERSION,exportedAt:backupAt,data:payloadData};
+  const payload={app:'Covoiturage',format:DATA_FORMAT,schema:SCHEMA_VERSION,version:BACKUP_VERSION,exportedAt:backupAt,data:payloadData};
   const filename=`covoiturage-sauvegarde-${getToday()}.json`;
   const content=JSON.stringify(payload);
   const blob=new Blob([content],{type:'application/json'});
@@ -1076,7 +1068,7 @@ async function restoreData(file){
   if(file.size>MAX_BACKUP_SIZE) throw new Error('too-large');
   const parsed=JSON.parse(await file.text());
   if(!isRecord(parsed)||parsed.app!=='Covoiturage'||parsed.format!==DATA_FORMAT||![1,2,3,4].includes(parsed.schema)||parsed.schema!==parsed.data?.schema||!Number.isInteger(parsed.version)||parsed.version<1||!validDataShape(parsed.data))throw new Error('incompatible-backup');
-  if(Number(parsed.version)>APP_VERSION)throw new Error('future-version');
+  if(Number(parsed.version)>BACKUP_VERSION)throw new Error('future-version');
   const next=normalizeData(parsed.data);
   if(!confirm(`Restaurer cette sauvegarde (${next.routes.filter(r=>!r.deleted).length} itinéraires, ${next.trips.length} trajets, ${next.payments.length} versements) ? Les données actuelles seront remplacées.`))return;
   data=next;
@@ -1112,6 +1104,8 @@ $('#routesCard').addEventListener('click',event=>{
   if(button.classList.contains('reactivate-route'))archiveRoute(button.dataset.routeId,false);
 });
 $('#historyRoute').addEventListener('change',renderHistory);
+
+$('.version-badge').textContent=`Version ${APP_VERSION}`;
 
 $$('.tab').forEach(button=>button.addEventListener('click',()=>selectTab(button.dataset.tab)));
 $('#save').addEventListener('click',addTrip);
@@ -1158,7 +1152,7 @@ $('#backupData').addEventListener('click',()=>{void backupData().catch(()=>alert
 $('#restoreFile').addEventListener('change',async event=>{
   const input=event.target, file=input.files&&input.files[0];
   try{await restoreData(file);}catch(error){
-    alert(error.message==='incompatible-backup' ? 'Cette sauvegarde n’est pas compatible avec Covoiturage multi-itinéraires. Les sauvegardes des anciennes versions V37 à V58 ne peuvent pas être importées.' : error.message==='too-large'?'Ce fichier dépasse la limite de restauration de 20 Mo.':error.message==='future-version'?'Cette sauvegarde provient d’une version plus récente. Mettez à jour l’application avant de la restaurer.':'Ce fichier ne semble pas être une sauvegarde Covoiturage valide. Les données actuelles sont conservées.');
+    alert(error.message==='incompatible-backup' ? 'Cette sauvegarde n’est pas compatible avec Covoiturage multi-itinéraires. Les sauvegardes de l’ancienne application sans gestion des itinéraires ne peuvent pas être importées.' : error.message==='too-large'?'Ce fichier dépasse la limite de restauration de 20 Mo.':error.message==='future-version'?'Cette sauvegarde provient d’une version plus récente. Mettez à jour l’application avant de la restaurer.':'Ce fichier ne semble pas être une sauvegarde Covoiturage valide. Les données actuelles sont conservées.');
   }finally{input.value='';}
 });
 $('#export').addEventListener('click',exportCsv);

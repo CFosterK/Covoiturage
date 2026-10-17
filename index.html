@@ -12,18 +12,18 @@
   <meta name="format-detection" content="telephone=no">
   <meta name="color-scheme" content="light dark">
   <title>Covoiturage</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=14">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=14">
-  <link rel="manifest" href="manifest.webmanifest?v=14">
-  <link rel="stylesheet" href="styles.css?v=14">
-  <script defer="" src="app.js?v=14"></script>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=1-20261017">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=1-20261017">
+  <link rel="manifest" href="manifest.webmanifest?v=1-20261017">
+  <link rel="stylesheet" href="styles.css?v=1-20261017">
+  <script defer="" src="app.js?v=1-20261017"></script>
 </head>
 <body data-view="today"><div id="status" class="status-toast" role="status" aria-live="polite"></div>
   <div class="ambient" aria-hidden="true"></div>
 
   <header class="top">
     <img class="app-banner" src="banner.png" alt="Covoiturage">
-    
+
   </header>
 
   <main class="app-shell" id="app">
@@ -45,7 +45,7 @@
         </span>
         <span class="tab-label">Historique</span>
       </button>
-      
+
       <button type="button" class="tab" data-tab="settings" role="tab" aria-selected="false" aria-controls="settings">
         <span class="tab-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" focusable="false"><path d="M12.22 2h-.44a2 2 0 0 0-2 1.72l-.12.88a2 2 0 0 1-1.18 1.52l-.42.24a2 2 0 0 1-1.9.18l-.82-.34a2 2 0 0 0-2.46.87l-.22.38a2 2 0 0 0 .47 2.59l.7.54a2 2 0 0 1 .72 1.78v.48a2 2 0 0 1-.72 1.78l-.7.54a2 2 0 0 0-.47 2.59l.22.38a2 2 0 0 0 2.46.87l.82-.34a2 2 0 0 1 1.9.18l.42.24a2 2 0 0 1 1.18 1.52l.12.88a2 2 0 0 0 2 1.72h.44a2 2 0 0 0 2-1.72l.12-.88a2 2 0 0 1 1.18-1.52l.42-.24a2 2 0 0 1 1.9-.18l.82.34a2 2 0 0 0 2.46-.87l.22-.39a2 2 0 0 0-.47-2.59l-.7-.53a2 2 0 0 1-.72-1.78v-.48a2 2 0 0 1 .72-1.78l.7-.54a2 2 0 0 0 .47-2.59l-.22-.38a2 2 0 0 0-2.46-.87l-.82.34a2 2 0 0 1-1.9-.18l-.42-.24a2 2 0 0 1-1.18-1.52l-.12-.88a2 2 0 0 0-2-1.72Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
@@ -118,7 +118,7 @@
         <details class="history-filters" id="summaryFilters">
           <summary>Filtrer par période</summary>
           <div class="history-filter-grid">
-            
+
             <div class="field"><label for="summaryPeriod">Période</label><select id="summaryPeriod"><option value="all">Toutes les dates</option><option value="year">Année</option><option value="month">Mois</option><option value="week">Semaine</option></select></div>
             <div class="field hidden" id="summaryYearField"><label for="summaryYear">Année</label><input id="summaryYear" type="number" min="1000" max="9999" step="1" inputmode="numeric"></div>
             <div class="field hidden" id="summaryMonthField"><label for="summaryMonth">Mois</label><input id="summaryMonth" type="month"></div>
@@ -146,7 +146,6 @@
         </form>
       </div>
 
-      
     </section>
 
     <section id="settings" class="view hidden" role="tabpanel" tabindex="0"><article class="card content-card" id="routesCard"><h2 class="date">Itinéraires</h2><button id="addRoute" type="button" class="btn secondary has-icon"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 5v14M5 12h14"/></svg></span><span class="btn-label">Ajouter un itinéraire</span></button><div id="routeAddSlot"></div><div id="routeEditorHome" hidden><form id="routeEditor" class="person-editor" novalidate><div class="field"><label for="routeName">Nom de l’itinéraire</label><input id="routeName" maxlength="40" autocomplete="off" placeholder="ex. Domicile – Travail" required></div><div class="field"><label for="routeDistance">Distance aller simple (km)</label><input id="routeDistance" type="text" inputmode="decimal" autocomplete="off" required></div><div class="field"><label for="routeToll">Péage aller simple (€)</label><input id="routeToll" type="text" inputmode="decimal" autocomplete="off" value="0" required></div><p id="routeError" class="small payment-error" role="alert"></p><button id="saveRoute" type="submit" class="btn primary has-icon"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"/></svg></span><span class="btn-label">Enregistrer</span></button><button id="cancelRouteEditor" type="button" class="btn secondary has-icon"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg></span><span class="btn-label">Annuler</span></button></form></div><div id="activeRoutes"></div><details id="archivedRoutesSection" class="archived-section"><summary>Itinéraires archivés <span id="archivedRoutesCount"></span></summary><p class="small">Les historiques sont conservés. Réactivez un itinéraire pour l’utiliser sur de nouveaux trajets.</p><div id="archivedRoutes"></div></details></article>
@@ -164,7 +163,7 @@
           </form>
         </div>
         <div id="activePeopleSettings" class="people-settings-list"></div>
-        
+
         <details id="archivedPeopleSection" class="archived-section hidden">
           <summary>Passagers archivés <span id="archivedCount"></span></summary><p class="small">Les passagers archivés disparaissent de l’écran du trajet, mais leur historique et leurs versements sont conservés.</p>
           <div id="archivedPeopleSettings"></div>
@@ -173,11 +172,11 @@
       <article class="card content-card">
         <h2 class="date">Véhicule et énergie</h2>
         <div class="row">
-          
+
           <div class="field"><label for="energyType">Type d’énergie</label><select id="energyType"><option value="fuel">Carburant</option><option value="electric">Électricité</option></select></div>
           <div class="field"><label id="consumptionLabel" for="consumption">Consommation (L/100 km)</label><input id="consumption" type="number" min="0" max="100" step="0.1" inputmode="decimal"></div>
           <div class="field"><label id="energyPriceLabel" for="energyPrice">Prix énergie / carburant (€/L)</label><input id="energyPrice" type="number" min="0" max="20" step="0.01" inputmode="decimal"></div>
-          
+
         </div>
         <div class="field"><label for="vehicleCostPerKm">Coût véhicule / km (€/km)</label><input id="vehicleCostPerKm" type="number" min="0" max="10" step="0.001" inputmode="decimal"></div>
         <p class="small energy-help" id="vehicleCostHelp">Ce coût par kilomètre couvre notamment l’usure, l’entretien et la décote du véhicule.</p>
@@ -185,8 +184,6 @@
         <p class="small">Réglages communs à tous les itinéraires. Les trajets déjà enregistrés restent inchangés.</p>
       </article>
 
-
-      
 <article class="card content-card"><h2 class="date">Tarifs</h2><div class="field"><label for="maxPassengers">Passagers maximum, hors conducteur</label><select id="maxPassengers"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select></div><p id="tariffError" class="small payment-error" role="alert"></p><button class="btn primary has-icon" id="saveTariff" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m20 6-11 11-5-5"/></svg></span><span class="btn-label">Enregistrer le réglage</span></button><div class="field tariff-route-field"><label for="tariffRoute">Itinéraire à consulter</label><select id="tariffRoute"></select></div><div id="tariffTable"></div></article>
 
       <article class="card content-card">
@@ -209,14 +206,12 @@
         <div class="privacy-note">
         <h3 class="subsection-title">Confidentialité</h3>
         <p class="small">Les trajets, versements et réglages restent sur cet appareil. L’application n’envoie pas ces données vers un serveur.</p>
-        <div class="version-badge">Version 14</div>
+        <div class="version-badge">Version 1</div>
         </div>
       </article>
     </section>
 
     <footer class="footer">Données enregistrées localement sur cet appareil.</footer>
   </main>
-
-
 
 </body></html>

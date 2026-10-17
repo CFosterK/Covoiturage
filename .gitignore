@@ -1,0 +1,8 @@
+# Fichiers locaux : ne pas publier de sauvegardes personnelles.
+.DS_Store
+Thumbs.db
+node_modules/
+.env
+.env.*
+covoiturage-sauvegarde-*.json
+covoiturage-recuperation-*.json
