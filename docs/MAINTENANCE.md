@@ -19,7 +19,7 @@ Ouvrez ensuite `http://localhost:8000`. Les données de ce test sont distinctes 
 ## Trois références à distinguer
 
 - **Version de l’application** : le numéro visible est désormais 2. Il se trouve dans `APP_VERSION` dans `app.js` et dans le texte initial « Version 2 » de `index.html`. La prochaine version visible sera 3.
-- **Cache hors ligne** : les adresses des ressources dans `index.html`, `manifest.webmanifest` et `sw.js` utilisent `?v=1-20261017`. Le nom du cache dans `sw.js` se termine par `v2-20261027`. Changez ces références ensemble à chaque livraison, avec une valeur jamais utilisée auparavant.
+- **Cache hors ligne** : les adresses des ressources dans `index.html`, `manifest.webmanifest` et `sw.js` utilisent `?v=2-20261027`. Le nom du cache dans `sw.js` se termine par `v2-20261027`. Changez ces références ensemble à chaque livraison, avec une valeur jamais utilisée auparavant.
 - **Compatibilité des sauvegardes** : `BACKUP_VERSION = 14` et `SCHEMA_VERSION = 4` sont des références techniques conservées pour lire les sauvegardes existantes. Elles ne repartent pas de 1. Une nouvelle sauvegarde peut donc contenir `version: 14` même si l’interface affiche « Version 2 ».
 
 Pour une modification visuelle, ne changez ni les références techniques des sauvegardes, ni les marqueurs de calcul enregistrés dans les trajets (`automatic-v4`, `per-half-v11`). Ces derniers servent à lire les anciens montants correctement. Si le format des données évolue, il faut revoir sa validation, sa compatibilité et les tests de restauration.
@@ -48,3 +48,4 @@ Le dépôt étant public, n’y ajoutez pas vos sauvegardes personnelles, mots d
 L’historique des commits est conservé. La branche `archive/avant-version-1` garde le code de la V14 avant cette renumérotation. Pour annuler une modification, privilégiez un nouveau commit qui rétablit les fichiers souhaités, plutôt que d’effacer l’historique.
 
 Le retour du code à une ancienne version ne restaure pas vos données personnelles : leur restauration utilise le fichier JSON sauvegardé depuis l’application.
+
