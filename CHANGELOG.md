@@ -1,5 +1,14 @@
 # Changements
 
+## Version 2 — 27 octobre 2026
+
+- Confirmation d’enregistrement élargie à son contenu, dans la limite de l’écran. La coche reste liée au dernier mot.
+- Les détails sous le nom du passager utilisent la largeur disponible du bloc. Les groupes « dû » et « versé » restent indivisibles, avec le symbole € à côté du montant.
+- Version et cache hors ligne actualisés. Calculs, données et compatibilité des sauvegardes conservés.
+
+Vérifications automatisées dans Chrome : reproduction des montants des photos, confirmations et détails passagers en clair/sombre à 320, 390, 430 et 768 px ; contrôles des quatre onglets à 320, 390 et 768 px ; enregistrement, versement, solde, modification sans changement et hors ligne. Contrôle des captures clair/sombre sur ordinateur. Aucun essai sur un véritable iPhone.
+
+
 ## Version 1 — 17 octobre 2026
 
 La version précédemment nommée V14 devient le point de départ de la nouvelle numérotation.

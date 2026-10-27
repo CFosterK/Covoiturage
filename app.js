@@ -1,7 +1,7 @@
 'use strict';
 
 // Numéro visible de la nouvelle série de versions.
-const APP_VERSION = 1;
+const APP_VERSION = 2;
 // Référence technique des sauvegardes : indépendante du numéro visible.
 // Conserver 14 pour accepter les fichiers des versions antérieures à la renumérotation.
 const BACKUP_VERSION = 14;
@@ -140,7 +140,7 @@ function saveData({allowRecovery=false}={}){
 
 function flash(message){
   const el=$('#status');
-  el.textContent=message;
+  el.textContent=message.replace(/\s+([✓✔])$/u,'\u00a0$1');
   clearTimeout(flash.timer);
   flash.timer=setTimeout(()=>{el.textContent='';},2200);
 }
@@ -702,7 +702,7 @@ function renderSummary(){
     const balance=Math.round((due-paid)*100)/100;
     const state=balance>0?`${paymentEuro(balance)} à payer`:balance<0?`Crédit ${paymentEuro(Math.abs(balance))}`:'Soldé ✓';
     const cls=balance>0?'balance-positive':balance<0?'balance-credit':'balance-zero';
-    return `<div class="summary-entry"><div class="summaryPerson"><span><strong class="summary-person-name">${escapeHTML(personName(i))}</strong>${isArchived(i)?'<span class="archive-tag">archivé</span>':''}<br><span class="small">${personTrips.length} trajet(s) · dû ${paymentEuro(due)} · versé ${paymentEuro(paid)}</span></span><span class="${cls}">${state}</span></div><button class="btn secondary compact has-icon quick-payment" type="button" data-person-index="${i}" aria-expanded="false" aria-controls="payment-slot-${i}" aria-label="Enregistrer un versement pour ${escapeHTML(personName(i))}">${UI_ICONS.payment}<span class="btn-label">Enregistrer un versement</span></button><div id="payment-slot-${i}"></div></div>`;
+    return `<div class="summary-entry"><div class="summaryPerson"><span class="summary-person-identity"><strong class="summary-person-name">${escapeHTML(personName(i))}</strong>${isArchived(i)?'<span class="archive-tag">archivé</span>':''}</span><span class="summary-person-balance ${cls}">${state}</span><div class="small summary-person-details"><span class="summary-detail-item">${personTrips.length} trajet(s)</span> · <span class="summary-detail-item">dû ${paymentEuro(due)}</span> · <span class="summary-detail-item">versé ${paymentEuro(paid)}</span></div></div><button class="btn secondary compact has-icon quick-payment" type="button" data-person-index="${i}" aria-expanded="false" aria-controls="payment-slot-${i}" aria-label="Enregistrer un versement pour ${escapeHTML(personName(i))}">${UI_ICONS.payment}<span class="btn-label">Enregistrer un versement</span></button><div id="payment-slot-${i}"></div></div>`;
   };
   const otherArchived=data.archivedPeople.filter(i=>!relevantPeople.includes(i));
   $('#personSummary').innerHTML=relevantPeople.map(renderPerson).join('')+(otherArchived.length

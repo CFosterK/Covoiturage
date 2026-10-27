@@ -1,10 +1,10 @@
-# Covoiturage — Version 1
+# Covoiturage — Version 2
 
 Une application pour noter vos trajets de covoiturage, calculer la participation de chaque passager et suivre les versements reçus.
 
 **[Ouvrir l’application](https://cfosterk.github.io/Covoiturage/)**
 
-Cette Version 1 prend pour base la version précédemment appelée V14. La numérotation repart de 1 ; les données déjà enregistrées et les calculs sont conservés.
+La numérotation actuelle a commencé avec la Version 1, fondée sur l’ancienne V14. La Version 2 corrige deux retours à la ligne dans les confirmations et les récapitulatifs des passagers.
 
 ## Commencer
 
